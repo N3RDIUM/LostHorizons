@@ -1,0 +1,6 @@
+{   
+    "version": "0.0.1-pre-alpha",
+    "mesh": {
+        "max_vertices": 1000000
+    }
+}
