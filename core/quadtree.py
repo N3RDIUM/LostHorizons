@@ -94,9 +94,9 @@ class QuadTree:
         if distance < self.size*4:
             if len(self.children) == 1 and self.level < 3:
                 self.parent.split_queue.append(self)
-        # else:
-            # if not len(self.children) == 1:
-                # self.parent.unify_queue.append(self)
+        elif distance > self.size*2:
+            if not len(self.children) == 1:
+                self.parent.unify_queue.append(self)
         for child in self.children:
             try:
                 child.update(camera_position)
@@ -106,7 +106,6 @@ class QuadTree:
         # Process the split queue
         tosplit = self.split_queue.pop(0) if len(self.split_queue) > 0 else None
         if tosplit:
-            print("Splitting")
             rect = tosplit.rect.copy()
             parent = tosplit.parent
             planet = tosplit.planet
@@ -121,7 +120,6 @@ class QuadTree:
         # Process the unify queue
         tounify = self.unify_queue.pop(0) if len(self.unify_queue) > 0 else None
         if tounify:
-            print("Unifying")
             rect = tounify.rect.copy()
             parent = tounify.parent
             planet = tounify.planet
