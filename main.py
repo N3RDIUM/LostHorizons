@@ -6,7 +6,6 @@ from OpenGL.GLUT import *
 
 from core.camera import Camera
 from core.twod import TwoDTerrain as Terrain
-from core.planet import DummyPlanet
 from settings import settings
 
 glutInit()
@@ -32,9 +31,10 @@ def main():
     
     def _setup_3d():
         glEnable(GL_DEPTH_TEST)
+        glViewport(0, 0, *glfw.get_window_size(window))
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        gluPerspective(60, glfw.get_window_size(window)[0] / glfw.get_window_size(window)[1], 2, 100000)
+        gluPerspective(60, glfw.get_window_size(window)[0] / glfw.get_window_size(window)[1], 4, 100000)
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
     
@@ -68,7 +68,7 @@ def main():
         glDisable(GL_LIGHTING)
         glDisable(GL_LIGHT0)
         glDisable(GL_COLOR_MATERIAL)
-        
+
         terrain.update(camera)
         
         glfw.swap_buffers(window)
