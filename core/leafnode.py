@@ -21,7 +21,7 @@ class LeafNode:
             0.6+abs(random.random()*0.4),
             0.6+abs(random.random()*0.4)
         ]
-        self.generated = False
+        self.generated = True
         self.thread = threading.Thread(target=self.generate, daemon=True)
         self.thread.start()
         self.type = "leaf"
@@ -55,7 +55,6 @@ class LeafNode:
         
         # Create a mesh
         self.mesh = Mesh(vertices, indices, normals)
-        self.generated = True
         
     def tesselate(self, vertices, times=1):
         if times == 0:

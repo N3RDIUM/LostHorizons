@@ -53,20 +53,8 @@ class TwoDTerrain:
             # Process the split queue
             tosplit = self.split_queue.pop(0) if len(self.split_queue) > 0 else None
             if tosplit:
-                rect = tosplit.rect.copy()
-                parent = tosplit.parent
-                planet = tosplit.planet
-                id = tosplit.id
-                tosplit_index = self.findchunk(id)
-                if tosplit_index:
-                    tosplit.dispose()
-                    del self.chunks[tosplit_index]
-                    del tosplit
-                    tosplit = QuadTree(rect, 1, parent, planet=planet)
-                    tosplit.generate_split()
-                    self.chunks[tosplit_index] = tosplit
-                else:
-                    pass
+                tosplit.swap_children()
+                tosplit.generate_split()
                 
             # Process the unify queue
             tounify = self.unify_queue.pop(0) if len(self.unify_queue) > 0 else None

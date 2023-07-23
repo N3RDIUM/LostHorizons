@@ -17,6 +17,7 @@ class QuadTree:
         self.tokill = tokill
         self.toassign = toassign
         self.children = []
+        self._children = []
         self.size = (self.rect[1][0] - self.rect[0][0]) / 2
         self.position = []
         self.generated = False
@@ -25,6 +26,14 @@ class QuadTree:
         self.unify_queue = []
         self.id = uuid.uuid4()
         self.type = None
+        
+    def swap_children(self):
+        for child in self.children:
+            self._children.append(child)
+        self.children = []
+        
+    def remove_old_children(self):
+        del self._children[:]
     
     def generate_unified(self):
         lnode = LeafNode(self.rect, 4, self, self.planet)
@@ -36,6 +45,11 @@ class QuadTree:
         ]
         self.kill_peers()
         self.type = "leaf"
+        self.generated = True
+        if self.parent.type == "node":
+            if self.all_children_generated():
+                self.parent.generated = True
+                self.parent.remove_old_children()
         
     def generate_split(self):
         if self.level >= MAX_LEVEL:
@@ -84,7 +98,6 @@ class QuadTree:
             (self.rect[0][2]+self.rect[1][2]+self.rect[2][2]+self.rect[3][2])/4
         ]
         self.type = "node"
-        self.kill_peers()
         
     def kill_peers(self):
         try:
@@ -93,24 +106,27 @@ class QuadTree:
                 del self.tokill
                 del self.parent.children[self.toassign]
                 self.parent.children.insert(self.toassign, self)
-            self.generared = True
+            self.generated = True
         except:
             pass
+        
     def draw(self):
         for child in self.children:
+            child.draw()
+        for child in self._children:
             child.draw()
             
     def all_children_generated(self):
         for child in self.children:
-            if not child.generated and child.type == "node":
-                print(f"Child {child.id} not generated")
+            if not child.generated:
                 return False
         return True
         
     def update(self, camera_position):
         if len(self.position) == 0:
             return
-        
+        if self.type == "node":
+            self.generated = self.all_children_generated()
         # Calculate the distance between the camera and the center of the quad
         distance = math.dist([
             -camera_position[0],
@@ -139,16 +155,8 @@ class QuadTree:
             # Process the split queue
             tosplit = self.split_queue.pop(0) if len(self.split_queue) > 0 else None
             if tosplit:
-                rect = tosplit.rect.copy()
-                parent = tosplit.parent
-                planet = tosplit.planet
-                level = tosplit.level
-                try:
-                    tosplit_index = self.children.index(tosplit)
-                    tree = QuadTree(rect, level, parent, planet=planet, tokill=tosplit, toassign = tosplit_index)
-                    tree.generate_split()
-                except ValueError:
-                    pass
+                tosplit.swap_children()
+                tosplit.generate_split()
                     
             # Process the unify queue
             tounify = self.unify_queue.pop(0) if len(self.unify_queue) > 0 else None
