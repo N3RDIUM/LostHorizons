@@ -20,22 +20,30 @@ class Mesh:
         self.normal_vbo = vbo.VBO(np.array(self.normals, 'f'))
         
     def draw(self):
-        self.vbo.bind()
-        glEnableClientState(GL_VERTEX_ARRAY)
-        glVertexPointer(3, GL_FLOAT, 0, self.vbo)
-        
-        self.normal_vbo.bind()
-        glEnableClientState(GL_NORMAL_ARRAY)
-        glNormalPointer(GL_FLOAT, 0, self.normal_vbo)
-        
-        glDrawArrays(GL_TRIANGLES, 0, len(self.vertices))
-        
-        glDisableClientState(GL_VERTEX_ARRAY)
-        glDisableClientState(GL_NORMAL_ARRAY)
-        
-        self.vbo.unbind()
-        self.normal_vbo.unbind()
+        try:
+            self.vbo.bind()
+            glEnableClientState(GL_VERTEX_ARRAY)
+            glVertexPointer(3, GL_FLOAT, 0, self.vbo)
             
-    def __del__(self):
-        self.vbo.delete()
-        self.normal_vbo.delete()
+            self.normal_vbo.bind()
+            glEnableClientState(GL_NORMAL_ARRAY)
+            glNormalPointer(GL_FLOAT, 0, self.normal_vbo)
+            
+            glDrawArrays(GL_TRIANGLES, 0, len(self.vertices))
+            
+            glDisableClientState(GL_VERTEX_ARRAY)
+            glDisableClientState(GL_NORMAL_ARRAY)
+            
+            self.vbo.unbind()
+            self.normal_vbo.unbind()
+        except:
+            pass
+        
+    def dispose(self):
+        if self.vbo:
+            self.vbo.delete()
+            self.vbo = None
+        if self.normal_vbo:
+            self.normal_vbo.delete()
+            self.normal_vbo = None
+        glFinish()

@@ -5,7 +5,7 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 
 from core.camera import Camera
-from core.quadtree import QuadTree
+from core.twod import TwoDTerrain as Terrain
 from core.planet import DummyPlanet
 from settings import settings
 
@@ -27,8 +27,8 @@ def main():
     
     # Create a quadtree and camera
     camera = Camera(position=[0, 0, 0])
-    planet = DummyPlanet(100, position=[0, -50, 0])
-    terrain = QuadTree(rect=[(-100, 0, -100), (100, 0, -100), (100, 0, 100), (-100, 0, 100)], planet=planet)
+    terrain = Terrain()
+    terrain.generate()
     
     def _setup_3d():
         glEnable(GL_DEPTH_TEST)
@@ -49,7 +49,7 @@ def main():
     
     _setup_3d()
     glLightfv(GL_LIGHT0, GL_DIFFUSE, (GLfloat * 3)(.05, .05, .05))
-    glLightfv(GL_LIGHT0, GL_LINEAR_ATTENUATION, (GLfloat * 1) (0.1))
+    glLightfv(GL_LIGHT0, GL_LINEAR_ATTENUATION, (GLfloat * 1) (0.9))
     glEnable(GL_LIGHT0)
     glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE)
     
@@ -69,7 +69,7 @@ def main():
         glDisable(GL_LIGHT0)
         glDisable(GL_COLOR_MATERIAL)
         
-        terrain.update(camera.position)
+        terrain.update(camera)
         
         glfw.swap_buffers(window)
         glfw.poll_events()

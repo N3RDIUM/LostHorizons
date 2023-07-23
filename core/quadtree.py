@@ -15,7 +15,7 @@ class QuadTree:
         self.generate()
     
     def generate(self):
-        lnode = LeafNode(self.rect, 6, self, self.planet)
+        lnode = LeafNode(self.rect, 4, self, self.planet)
         self.children.append(lnode)
         self.position = [
             (self.rect[0][0]+self.rect[1][0]+self.rect[2][0]+self.rect[3][0])/4,
@@ -24,6 +24,8 @@ class QuadTree:
         ]
         
     def split(self):
+        if self.level >= 2:
+            return
         # Split the quad into 4 quads
         corner1 = self.rect[0]
         corner2 = self.rect[1]
@@ -55,6 +57,7 @@ class QuadTree:
         self.children.append(node3)
         self.children.append(node4)
         
+        self.children[0].dispose()
         del self.children[0]
         
     def unite(self):
@@ -70,15 +73,23 @@ class QuadTree:
             return
         
         # Calculate the distance between the camera and the center of the quad
-        distance = math.dist(camera_position, self.position)
-        print(distance, self.size)
+        distance = math.dist([
+            -camera_position[0],
+            -camera_position[2],
+        ], [
+            self.position[0],
+            self.position[2]
+        ])
         
         # If the camera is close enough to the quad, split it
         if distance < self.size:
-            print("Splitting")
             if len(self.children) == 1:
                 self.split()
+            for child in self.children:
+                try:
+                    child.update(camera_position)
+                except:
+                    pass
         else:
-            print("Uniting")
             if len(self.children) == 4:
                 self.unite()

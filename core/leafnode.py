@@ -53,9 +53,7 @@ class LeafNode:
         )
         
         # Create a mesh
-        self.mesh = vertices
-        self.normals = normals
-        self.indices = indices
+        self.mesh = Mesh(vertices, indices, normals)
         
     def tesselate(self, vertices, times=1):
         if times == 0:
@@ -219,11 +217,7 @@ class LeafNode:
     def draw(self):
         if self.mesh is not None:
             glColor3f(self.color[0], self.color[1], self.color[2])
-            try:
-                # Draw double-sided
-                self.mesh.draw()
-            except:
-                self.mesh = Mesh(vertices=self.mesh, normals=self.normals, indices=self.indices)
+            self.mesh.draw()
                 
-    def __del__(self):
-        del self.mesh
+    def dispose(self):
+        self.mesh.dispose()
