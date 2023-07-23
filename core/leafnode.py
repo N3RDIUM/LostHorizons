@@ -24,6 +24,7 @@ class LeafNode:
         
         self.thread = threading.Thread(target=self.generate, daemon=True)
         self.thread.start()
+        self.type = "leaf"
         
     def generate(self):
         corner1 = self.rect[0]

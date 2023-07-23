@@ -3,3 +3,4 @@ class DummyPlanet:
         self.size = size
         self.position = position
         self.generation_queue = []
+        self.call_queue = []

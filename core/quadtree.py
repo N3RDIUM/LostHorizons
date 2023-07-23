@@ -2,24 +2,29 @@ from core.leafnode import LeafNode
 from core.utils import midpoint
 import math
 import uuid
+import threading
 
 from settings import settings
 MAX_LEVEL = settings['LoD']['max_level']
 PROCESSES_PER_FRAME = settings['LoD']['processes_per_frame']
 
 class QuadTree:
-    def __init__(self, rect=[(0,0,0), (100,0,0), (100,0,100), (0,0,100)], level=1, parent=None, planet=None):
+    def __init__(self, rect=[(0,0,0), (100,0,0), (100,0,100), (0,0,100)], level=1, parent=None, planet=None, tokill=None, toassign=None):
         self.rect = rect
         self.level = level
         self.parent = parent
         self.planet = planet
+        self.tokill = tokill
+        self.toassign = toassign
         self.children = []
         self.size = (self.rect[1][0] - self.rect[0][0]) / 2
         self.position = []
+        self.generated = False
         
         self.split_queue = []
         self.unify_queue = []
         self.id = uuid.uuid4()
+        self.type = None
     
     def generate_unified(self):
         lnode = LeafNode(self.rect, 4, self, self.planet)
@@ -29,6 +34,8 @@ class QuadTree:
             (self.rect[0][1]+self.rect[1][1]+self.rect[2][1]+self.rect[3][1])/4,
             (self.rect[0][2]+self.rect[1][2]+self.rect[2][2]+self.rect[3][2])/4
         ]
+        self.kill_peers()
+        self.type = "leaf"
         
     def generate_split(self):
         if self.level >= MAX_LEVEL:
@@ -76,10 +83,29 @@ class QuadTree:
             (self.rect[0][1]+self.rect[1][1]+self.rect[2][1]+self.rect[3][1])/4,
             (self.rect[0][2]+self.rect[1][2]+self.rect[2][2]+self.rect[3][2])/4
         ]
+        self.type = "node"
+        self.kill_peers()
         
+    def kill_peers(self):
+        try:
+            if self.tokill:
+                self.tokill.dispose()
+                del self.tokill
+                del self.parent.children[self.toassign]
+                self.parent.children.insert(self.toassign, self)
+            self.generared = True
+        except:
+            pass
     def draw(self):
         for child in self.children:
             child.draw()
+            
+    def all_children_generated(self):
+        for child in self.children:
+            if not child.generated and child.type == "node":
+                print(f"Child {child.id} not generated")
+                return False
+        return True
         
     def update(self, camera_position):
         if len(self.position) == 0:
@@ -97,7 +123,7 @@ class QuadTree:
         ])
         
         # If the camera is close enough to the quad, split it
-        if distance < self.size*4:
+        if distance < self.size*5:
             if len(self.children) == 1 and self.level < MAX_LEVEL:
                 self.parent.split_queue.append(self)
         elif distance > self.size*2:
@@ -119,12 +145,8 @@ class QuadTree:
                 level = tosplit.level
                 try:
                     tosplit_index = self.children.index(tosplit)
-                    tree = QuadTree(rect, level, parent, planet=planet)
+                    tree = QuadTree(rect, level, parent, planet=planet, tokill=tosplit, toassign = tosplit_index)
                     tree.generate_split()
-                    tosplit.dispose()
-                    del self.children[tosplit_index]
-                    self.children.insert(tosplit_index, tree)
-                    del tosplit
                 except ValueError:
                     pass
                     
@@ -137,12 +159,8 @@ class QuadTree:
                 level = tounify.level
                 try:
                     tounify_index = self.children.index(tounify)
-                    tree = QuadTree(rect, level, parent, planet=planet)
+                    tree = QuadTree(rect, level, parent, planet=planet, tokill=tounify, toassign = tounify_index)
                     tree.generate_unified()
-                    tounify.dispose()
-                    del self.children[tounify_index]
-                    self.children.insert(tounify_index, tree)
-                    del tounify
                 except ValueError:
                     pass
                 

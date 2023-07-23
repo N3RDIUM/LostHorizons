@@ -48,9 +48,13 @@ def main():
     glFogi(GL_FOG_COORD_SRC, GL_FRAGMENT_DEPTH)
     
     _setup_3d()
+    # Point Light
     glLightfv(GL_LIGHT0, GL_DIFFUSE, (GLfloat * 3)(.01, .01, .01))
     glLightfv(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, (GLfloat * 1) (0.00001))
     glEnable(GL_LIGHT0)
+    # Ambient Light
+    glLightfv(GL_LIGHT1, GL_AMBIENT, (GLfloat * 3)(.01, .01, .01))
+    glEnable(GL_LIGHT1)
     glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE)
     
     # Loop until the user closes the window
@@ -62,11 +66,13 @@ def main():
         
         glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)
+        glEnable(GL_LIGHT1)
         glLightfv(GL_LIGHT0, GL_POSITION, (GLfloat * 4)(-camera.position[0], 32, -camera.position[2], 1))
         glEnable(GL_COLOR_MATERIAL)
         glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
         terrain.draw()
         glDisable(GL_LIGHTING)
+        glDisable(GL_LIGHT1)
         glDisable(GL_LIGHT0)
         glDisable(GL_COLOR_MATERIAL)
 

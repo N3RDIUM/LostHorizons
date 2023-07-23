@@ -11,6 +11,7 @@ class TwoDTerrain:
         self.chunks = {}
         self.split_queue = []
         self.unify_queue = []
+        self.type = "planet"
         
     def generate_chunk(self, position):
         self.chunks[tuple(position)] = QuadTree(
