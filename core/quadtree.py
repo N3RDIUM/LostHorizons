@@ -88,9 +88,11 @@ class QuadTree:
         # Calculate the distance between the camera and the center of the quad
         distance = math.dist([
             -camera_position[0],
+            -camera_position[1],
             -camera_position[2],
         ], [
             self.position[0],
+            self.position[1],
             self.position[2]
         ])
         
