@@ -1,6 +1,7 @@
 from core.leafnode import LeafNode
 from core.utils import midpoint
 import math
+import uuid
 
 class QuadTree:
     def __init__(self, rect=[(0,0,0), (100,0,0), (100,0,100), (0,0,100)], level=1, parent=None, planet=None):
@@ -11,9 +12,12 @@ class QuadTree:
         self.children = []
         self.size = (self.rect[1][0] - self.rect[0][0]) / 2
         self.position = []
-        self.planet.generation_queue.append(self)
+        
+        self.split_queue = []
+        self.unify_queue = []
+        self.id = uuid.uuid4()
     
-    def generate(self):
+    def generate_unified(self):
         lnode = LeafNode(self.rect, 4, self, self.planet)
         self.children.append(lnode)
         self.position = [
@@ -22,8 +26,8 @@ class QuadTree:
             (self.rect[0][2]+self.rect[1][2]+self.rect[2][2]+self.rect[3][2])/4
         ]
         
-    def split(self):
-        if self.level >= 2:
+    def generate_split(self):
+        if self.level >= 3:
             return
         # Split the quad into 4 quads
         corner1 = self.rect[0]
@@ -56,12 +60,11 @@ class QuadTree:
         self.children.append(node3)
         self.children.append(node4)
         
-        # self.children[0].dispose()
-        # del self.children[0]
-        
-    def unite(self):
-        del self.children[:]
-        self.generate()
+        # Add the nodes to the generation queue
+        self.planet.generation_queue.append(node1)
+        self.planet.generation_queue.append(node2)
+        self.planet.generation_queue.append(node3)
+        self.planet.generation_queue.append(node4)
         
     def draw(self):
         for child in self.children:
@@ -81,14 +84,50 @@ class QuadTree:
         ])
         
         # If the camera is close enough to the quad, split it
-        if distance < self.size:
-            if len(self.children) == 1:
-                self.split()
+        if distance < self.size*4:
+            if len(self.children) == 1 and self.level <= 3:
+                self.parent.split_queue.append(self)
             for child in self.children:
                 try:
                     child.update(camera_position)
                 except:
                     pass
-        else:
-            if len(self.children) == 4:
-                self.unite()
+        # else:
+            # if not len(self.children) == 1:
+                # self.parent.unify_queue.append(self)
+        
+        # Process the split queue
+        tosplit = self.split_queue.pop(0) if len(self.split_queue) > 0 else None
+        if tosplit:
+            print("Splitting")
+            rect = tosplit.rect.copy()
+            parent = tosplit.parent
+            planet = tosplit.planet
+            level = tosplit.level
+            tosplit_index = self.children.index(tosplit)
+            tosplit.dispose()
+            del self.children[tosplit_index]
+            tree = QuadTree(rect, level, parent, planet=planet)
+            tree.generate_split()
+            self.children.insert(tosplit_index, tree)
+            
+        # Process the unify queue
+        tounify = self.unify_queue.pop(0) if len(self.unify_queue) > 0 else None
+        if tounify:
+            print("Unifying")
+            rect = tounify.rect.copy()
+            parent = tounify.parent
+            planet = tounify.planet
+            level = tounify.level
+            tounify_index = self.children.index(tounify)
+            tounify.dispose()
+            del self.children[tounify_index]
+            tree = QuadTree(rect, level, parent, planet=planet)
+            tree.generate_unified()
+            self.children.insert(tounify_index, tree)
+            
+    def dispose(self):
+        for child in self.children:
+            child.dispose()
+        del self.children[:]
+        self.children = []

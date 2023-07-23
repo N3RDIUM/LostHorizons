@@ -220,4 +220,7 @@ class LeafNode:
             self.mesh.draw()
                 
     def dispose(self):
-        self.mesh.dispose()
+        try:
+            self.mesh.dispose()
+        except AttributeError:
+            pass

@@ -40,12 +40,12 @@ class Mesh:
             pass
         
     def dispose(self):
-        # if self.vbo:
-        #     self.vbo.delete()
-        #     del self.vbo
-        #     self.vbo = None
-        # if self.normal_vbo:
-        #     self.normal_vbo.delete()
-        #     del self.normal_vbo
-        #     self.normal_vbo = None
+        if self.vbo:
+            self.vbo.delete()
+            del self.vbo
+            self.vbo = None
+        if self.normal_vbo:
+            self.normal_vbo.delete()
+            del self.normal_vbo
+            self.normal_vbo = None
         glFinish()
