@@ -132,7 +132,7 @@ class LeafNode:
         for i in range(len(vertices)):
             vertices[i] = (
                 vertices[i][0],
-                vertices[i][1] + noise.snoise2(vertices[i][0] / 100, vertices[i][2] / 100) * 100,
+                vertices[i][1] + noise.snoise2(vertices[i][0] / 100, vertices[i][2] / 100) * 32,
                 vertices[i][2]
             )
         return vertices

@@ -3,6 +3,10 @@ from core.utils import midpoint
 import math
 import uuid
 
+from settings import settings
+MAX_LEVEL = settings['LoD']['max_level']
+PROCESSES_PER_FRAME = settings['LoD']['processes_per_frame']
+
 class QuadTree:
     def __init__(self, rect=[(0,0,0), (100,0,0), (100,0,100), (0,0,100)], level=1, parent=None, planet=None):
         self.rect = rect
@@ -27,8 +31,8 @@ class QuadTree:
         ]
         
     def generate_split(self):
-        if self.level >= 3:
-            return
+        if self.level >= MAX_LEVEL:
+            return # Don't split if we're at the max level
         # Split the quad into 4 quads
         corner1 = self.rect[0]
         corner2 = self.rect[1]
@@ -92,7 +96,7 @@ class QuadTree:
         
         # If the camera is close enough to the quad, split it
         if distance < self.size*4:
-            if len(self.children) == 1 and self.level < 3:
+            if len(self.children) == 1 and self.level < MAX_LEVEL:
                 self.parent.split_queue.append(self)
         elif distance > self.size*2:
             if not len(self.children) == 1:
@@ -103,34 +107,43 @@ class QuadTree:
             except:
                 pass
         
-        # Process the split queue
-        tosplit = self.split_queue.pop(0) if len(self.split_queue) > 0 else None
-        if tosplit:
-            rect = tosplit.rect.copy()
-            parent = tosplit.parent
-            planet = tosplit.planet
-            level = tosplit.level
-            tosplit_index = self.children.index(tosplit)
-            tosplit.dispose()
-            del self.children[tosplit_index]
-            tree = QuadTree(rect, level, parent, planet=planet)
-            tree.generate_split()
-            self.children.insert(tosplit_index, tree)
-            
-        # Process the unify queue
-        tounify = self.unify_queue.pop(0) if len(self.unify_queue) > 0 else None
-        if tounify:
-            rect = tounify.rect.copy()
-            parent = tounify.parent
-            planet = tounify.planet
-            level = tounify.level
-            tounify_index = self.children.index(tounify)
-            tounify.dispose()
-            del self.children[tounify_index]
-            tree = QuadTree(rect, level, parent, planet=planet)
-            tree.generate_unified()
-            self.children.insert(tounify_index, tree)
-            
+        for i in range(PROCESSES_PER_FRAME):
+            # Process the split queue
+            tosplit = self.split_queue.pop(0) if len(self.split_queue) > 0 else None
+            if tosplit:
+                rect = tosplit.rect.copy()
+                parent = tosplit.parent
+                planet = tosplit.planet
+                level = tosplit.level
+                try:
+                    tosplit_index = self.children.index(tosplit)
+                    tree = QuadTree(rect, level, parent, planet=planet)
+                    tree.generate_split()
+                    tosplit.dispose()
+                    del self.children[tosplit_index]
+                    self.children.insert(tosplit_index, tree)
+                    del tosplit
+                except ValueError:
+                    pass
+                    
+            # Process the unify queue
+            tounify = self.unify_queue.pop(0) if len(self.unify_queue) > 0 else None
+            if tounify:
+                rect = tounify.rect.copy()
+                parent = tounify.parent
+                planet = tounify.planet
+                level = tounify.level
+                try:
+                    tounify_index = self.children.index(tounify)
+                    tree = QuadTree(rect, level, parent, planet=planet)
+                    tree.generate_unified()
+                    tounify.dispose()
+                    del self.children[tounify_index]
+                    self.children.insert(tounify_index, tree)
+                    del tounify
+                except ValueError:
+                    pass
+                
     def dispose(self):
         for child in self.children:
             child.dispose()

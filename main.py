@@ -38,7 +38,7 @@ def main():
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
     
-    glEnable(GL_FOG) # For a false sense of depth
+    # glEnable(GL_FOG) # For a false sense of depth
     glFogi(GL_FOG_MODE, GL_LINEAR)
     glFogfv(GL_FOG_COLOR, [0.0, 0.0, 0.0, 1.0])
     glFogf(GL_FOG_DENSITY, 0.1)
@@ -48,8 +48,8 @@ def main():
     glFogi(GL_FOG_COORD_SRC, GL_FRAGMENT_DEPTH)
     
     _setup_3d()
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, (GLfloat * 3)(.05, .05, .05))
-    glLightfv(GL_LIGHT0, GL_LINEAR_ATTENUATION, (GLfloat * 1) (0.1))
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, (GLfloat * 3)(.0005, .0005, .0005))
+    glLightfv(GL_LIGHT0, GL_LINEAR_ATTENUATION, (GLfloat * 1) (0.001))
     glEnable(GL_LIGHT0)
     glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE)
     
@@ -60,14 +60,14 @@ def main():
         _setup_3d()
         camera.update(window)
         
-        # glEnable(GL_LIGHTING)
-        # glEnable(GL_LIGHT0)
+        glEnable(GL_LIGHTING)
+        glEnable(GL_LIGHT0)
         glEnable(GL_COLOR_MATERIAL)
         glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
         terrain.draw()
         glDisable(GL_LIGHTING)
-        # glDisable(GL_LIGHT0)
-        # glDisable(GL_COLOR_MATERIAL)
+        glDisable(GL_LIGHT0)
+        glDisable(GL_COLOR_MATERIAL)
         
         terrain.update(camera)
         

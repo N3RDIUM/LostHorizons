@@ -1,8 +1,10 @@
 from core.planet import DummyPlanet
 from core.quadtree import QuadTree
+from settings import settings
+PROCESSES_PER_FRAME = settings['LoD']['processes_per_frame']
 
 class TwoDTerrain:
-    def __init__(self, planet=DummyPlanet(), render_distance=4, chunksize=1000):
+    def __init__(self, planet=DummyPlanet(), render_distance=4, chunksize=10000):
         self.planet = planet
         self.render_distance = render_distance
         self.chunksize = chunksize
@@ -46,46 +48,47 @@ class TwoDTerrain:
         except RuntimeError:
             pass
         
-        # Process the split queue
-        tosplit = self.split_queue.pop(0) if len(self.split_queue) > 0 else None
-        if tosplit:
-            rect = tosplit.rect.copy()
-            parent = tosplit.parent
-            planet = tosplit.planet
-            id = tosplit.id
-            tosplit_index = self.findchunk(id)
-            if tosplit_index:
-                tosplit.dispose()
-                del self.chunks[tosplit_index]
-                del tosplit
-                tosplit = QuadTree(rect, 1, parent, planet=planet)
-                tosplit.generate_split()
-                self.chunks[tosplit_index] = tosplit
-            else:
-                print("Chunk not found")
-            
-        # Process the unify queue
-        tounify = self.unify_queue.pop(0) if len(self.unify_queue) > 0 else None
-        if tounify:
-            rect = tounify.rect.copy()
-            parent = tounify.parent
-            planet = tounify.planet
-            id = tounify.id
-            tounify_index = self.findchunk(id)
-            if tounify_index:
-                tounify.dispose()
-                del self.chunks[tounify_index]
-                del tounify
-                tounify = QuadTree(rect, 1, parent, planet=planet)
-                tounify.generate_unified()
-                self.chunks[tounify_index] = tounify
-            else:
-                print("Chunk not found")
-
-        if len(self.planet.generation_queue) == 0:
-            return
-        _ = self.planet.generation_queue.pop(-1)
-        _.generate_unified()
+        for i in range(PROCESSES_PER_FRAME):        
+            # Process the split queue
+            tosplit = self.split_queue.pop(0) if len(self.split_queue) > 0 else None
+            if tosplit:
+                rect = tosplit.rect.copy()
+                parent = tosplit.parent
+                planet = tosplit.planet
+                id = tosplit.id
+                tosplit_index = self.findchunk(id)
+                if tosplit_index:
+                    tosplit.dispose()
+                    del self.chunks[tosplit_index]
+                    del tosplit
+                    tosplit = QuadTree(rect, 1, parent, planet=planet)
+                    tosplit.generate_split()
+                    self.chunks[tosplit_index] = tosplit
+                else:
+                    pass
+                
+            # Process the unify queue
+            tounify = self.unify_queue.pop(0) if len(self.unify_queue) > 0 else None
+            if tounify:
+                rect = tounify.rect.copy()
+                parent = tounify.parent
+                planet = tounify.planet
+                id = tounify.id
+                tounify_index = self.findchunk(id)
+                if tounify_index:
+                    tounify.dispose()
+                    del self.chunks[tounify_index]
+                    del tounify
+                    tounify = QuadTree(rect, 1, parent, planet=planet)
+                    tounify.generate_unified()
+                    self.chunks[tounify_index] = tounify
+                else:
+                    pass
+        for i in range(PROCESSES_PER_FRAME):
+            if len(self.planet.generation_queue) == 0:
+                return
+            _ = self.planet.generation_queue.pop(-1)
+            _.generate_unified()
         
     def findchunk(self, id):
         for chunk in self.chunks.keys():
