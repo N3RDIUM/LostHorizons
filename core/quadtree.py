@@ -32,9 +32,13 @@ class QuadTree:
             self._children.append(child)
         self.children = []
         
-    def remove_old_children(self):
-        del self._children[:]
-    
+    def remove_old_children(self): 
+        # TODO: Still causes segfaults at high player speeds
+        for tokill in self._children:
+            tokill.dispose()
+            del tokill
+        self._children = []
+        
     def generate_unified(self):
         lnode = LeafNode(self.rect, 4, self, self.planet)
         self.children.append(lnode)
@@ -46,10 +50,6 @@ class QuadTree:
         self.kill_peers()
         self.type = "leaf"
         self.generated = True
-        if self.parent.type == "node":
-            if self.all_children_generated():
-                self.parent.generated = True
-                self.parent.remove_old_children()
         
     def generate_split(self):
         if self.level >= MAX_LEVEL:
@@ -98,6 +98,7 @@ class QuadTree:
             (self.rect[0][2]+self.rect[1][2]+self.rect[2][2]+self.rect[3][2])/4
         ]
         self.type = "node"
+        self.kill_peers()
         
     def kill_peers(self):
         try:
@@ -127,6 +128,8 @@ class QuadTree:
             return
         if self.type == "node":
             self.generated = self.all_children_generated()
+            if self.generated:
+                self.remove_old_children()
         # Calculate the distance between the camera and the center of the quad
         distance = math.dist([
             -camera_position[0],
