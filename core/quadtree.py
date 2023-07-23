@@ -7,6 +7,8 @@ import threading
 from settings import settings
 MAX_LEVEL = settings['LoD']['max_level']
 PROCESSES_PER_FRAME = settings['LoD']['processes_per_frame']
+MIN_DISTANCE_MULTIPLIER = settings['LoD']['min_distance_multiplier']
+MAX_DISTANCE_MULTIPLIER = settings['LoD']['max_distance_multiplier']
 
 class QuadTree:
     def __init__(self, rect=[(0,0,0), (100,0,0), (100,0,100), (0,0,100)], level=1, parent=None, planet=None, tokill=None, toassign=None):
@@ -142,10 +144,10 @@ class QuadTree:
         ])
         
         # If the camera is close enough to the quad, split it
-        if distance < self.size*5:
+        if distance < self.size * MIN_DISTANCE_MULTIPLIER:
             if len(self.children) == 1 and self.level < MAX_LEVEL:
                 self.parent.split_queue.append(self)
-        elif distance > self.size*2:
+        elif distance > self.size * MAX_DISTANCE_MULTIPLIER:
             if not len(self.children) == 1:
                 self.parent.unify_queue.append(self)
         for child in self.children:
