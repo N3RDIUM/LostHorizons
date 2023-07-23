@@ -49,10 +49,10 @@ class QuadTree:
         rect4 = [midpoint4, midpoint5, midpoint3, corner4]
         
         # Create a node for each quad
-        node1 = QuadTree(rect1, self.level + 1, self.parent, planet=self.planet)
-        node2 = QuadTree(rect2, self.level + 1, self.parent, planet=self.planet)
-        node3 = QuadTree(rect3, self.level + 1, self.parent, planet=self.planet)
-        node4 = QuadTree(rect4, self.level + 1, self.parent, planet=self.planet)
+        node1 = QuadTree(rect=rect1, level=self.level + 1, parent=self, planet=self.planet)
+        node2 = QuadTree(rect=rect2, level=self.level + 1, parent=self, planet=self.planet)
+        node3 = QuadTree(rect=rect3, level=self.level + 1, parent=self, planet=self.planet)
+        node4 = QuadTree(rect=rect4, level=self.level + 1, parent=self, planet=self.planet)
         
         # Add the nodes to the children list
         self.children.append(node1)
@@ -65,6 +65,13 @@ class QuadTree:
         self.planet.generation_queue.append(node2)
         self.planet.generation_queue.append(node3)
         self.planet.generation_queue.append(node4)
+        
+        # Set the position of the quad
+        self.position = [
+            (self.rect[0][0]+self.rect[1][0]+self.rect[2][0]+self.rect[3][0])/4,
+            (self.rect[0][1]+self.rect[1][1]+self.rect[2][1]+self.rect[3][1])/4,
+            (self.rect[0][2]+self.rect[1][2]+self.rect[2][2]+self.rect[3][2])/4
+        ]
         
     def draw(self):
         for child in self.children:
@@ -85,16 +92,16 @@ class QuadTree:
         
         # If the camera is close enough to the quad, split it
         if distance < self.size*4:
-            if len(self.children) == 1 and self.level <= 3:
+            if len(self.children) == 1 and self.level < 3:
                 self.parent.split_queue.append(self)
-            for child in self.children:
-                try:
-                    child.update(camera_position)
-                except:
-                    pass
         # else:
             # if not len(self.children) == 1:
                 # self.parent.unify_queue.append(self)
+        for child in self.children:
+            try:
+                child.update(camera_position)
+            except:
+                pass
         
         # Process the split queue
         tosplit = self.split_queue.pop(0) if len(self.split_queue) > 0 else None

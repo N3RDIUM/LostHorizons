@@ -2,7 +2,7 @@ from core.planet import DummyPlanet
 from core.quadtree import QuadTree
 
 class TwoDTerrain:
-    def __init__(self, planet=DummyPlanet(), render_distance=4, chunksize=100):
+    def __init__(self, planet=DummyPlanet(), render_distance=4, chunksize=1000):
         self.planet = planet
         self.render_distance = render_distance
         self.chunksize = chunksize
@@ -61,6 +61,8 @@ class TwoDTerrain:
                 tosplit = QuadTree(rect, 1, parent, planet=planet)
                 tosplit.generate_split()
                 self.chunks[tosplit_index] = tosplit
+            else:
+                print("Chunk not found")
             
         # Process the unify queue
         tounify = self.unify_queue.pop(0) if len(self.unify_queue) > 0 else None
@@ -77,6 +79,8 @@ class TwoDTerrain:
                 tounify = QuadTree(rect, 1, parent, planet=planet)
                 tounify.generate_unified()
                 self.chunks[tounify_index] = tounify
+            else:
+                print("Chunk not found")
 
         if len(self.planet.generation_queue) == 0:
             return

@@ -60,14 +60,14 @@ def main():
         _setup_3d()
         camera.update(window)
         
-        glEnable(GL_LIGHTING)
-        glEnable(GL_LIGHT0)
+        # glEnable(GL_LIGHTING)
+        # glEnable(GL_LIGHT0)
         glEnable(GL_COLOR_MATERIAL)
         glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
         terrain.draw()
         glDisable(GL_LIGHTING)
-        glDisable(GL_LIGHT0)
-        glDisable(GL_COLOR_MATERIAL)
+        # glDisable(GL_LIGHT0)
+        # glDisable(GL_COLOR_MATERIAL)
         
         terrain.update(camera)
         
