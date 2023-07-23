@@ -49,7 +49,7 @@ def main():
     
     _setup_3d()
     glLightfv(GL_LIGHT0, GL_DIFFUSE, (GLfloat * 3)(.05, .05, .05))
-    glLightfv(GL_LIGHT0, GL_LINEAR_ATTENUATION, (GLfloat * 1) (0.9))
+    glLightfv(GL_LIGHT0, GL_LINEAR_ATTENUATION, (GLfloat * 1) (0.1))
     glEnable(GL_LIGHT0)
     glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE)
     

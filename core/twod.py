@@ -26,6 +26,11 @@ class TwoDTerrain:
     def update(self, camera):
         for chunk in self.chunks.values():
             chunk.update(camera.position)
+        
+        if len(self.planet.generation_queue) == 0:
+            return
+        _ = self.planet.generation_queue.pop(-1)
+        _.generate()
             
     def draw(self):
         for chunk in self.chunks.values():

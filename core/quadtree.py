@@ -11,8 +11,7 @@ class QuadTree:
         self.children = []
         self.size = (self.rect[1][0] - self.rect[0][0]) / 2
         self.position = []
-        
-        self.generate()
+        self.planet.generation_queue.append(self)
     
     def generate(self):
         lnode = LeafNode(self.rect, 4, self, self.planet)
@@ -46,10 +45,10 @@ class QuadTree:
         rect4 = [midpoint4, midpoint5, midpoint3, corner4]
         
         # Create a node for each quad
-        node1 = QuadTree(rect1, self.level + 1, self.parent)
-        node2 = QuadTree(rect2, self.level + 1, self.parent)
-        node3 = QuadTree(rect3, self.level + 1, self.parent)
-        node4 = QuadTree(rect4, self.level + 1, self.parent)
+        node1 = QuadTree(rect1, self.level + 1, self.parent, planet=self.planet)
+        node2 = QuadTree(rect2, self.level + 1, self.parent, planet=self.planet)
+        node3 = QuadTree(rect3, self.level + 1, self.parent, planet=self.planet)
+        node4 = QuadTree(rect4, self.level + 1, self.parent, planet=self.planet)
         
         # Add the nodes to the children list
         self.children.append(node1)
@@ -57,8 +56,8 @@ class QuadTree:
         self.children.append(node3)
         self.children.append(node4)
         
-        self.children[0].dispose()
-        del self.children[0]
+        # self.children[0].dispose()
+        # del self.children[0]
         
     def unite(self):
         del self.children[:]
