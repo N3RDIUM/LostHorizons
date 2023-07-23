@@ -56,7 +56,6 @@ class Camera(object):
         self.mouse_prev = current_position
             
         # update view
-        glLoadIdentity()
         glRotatef(self.rotation[0], 1, 0, 0)
         glRotatef(self.rotation[1], 0, 1, 0)
         glTranslatef(self.position[0], self.position[1], self.position[2])
