@@ -1,4 +1,3 @@
-import threading
 import random
 import math
 import numpy as np
@@ -21,9 +20,8 @@ class LeafNode:
             0.6+abs(random.random()*0.4),
             0.6+abs(random.random()*0.4)
         ]
+        self.generate()
         self.generated = True
-        self.thread = threading.Thread(target=self.generate, daemon=True)
-        self.thread.start()
         self.type = "leaf"
         
     def generate(self):
