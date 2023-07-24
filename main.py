@@ -25,9 +25,9 @@ def main():
     glfw.make_context_current(window)
     
     # Create a Node and camera
-    camera = Camera(position=[0, 0, 0])
-    terrain = Planet()
+    terrain = Planet(size=10000)
     terrain.generate()
+    camera = Camera(position=[0, 0, 40000], rotation=[0, 180, 0], planet=terrain)
     
     def _setup_3d():
         glEnable(GL_DEPTH_TEST)

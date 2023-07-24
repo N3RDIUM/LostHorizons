@@ -1,11 +1,12 @@
 from OpenGL.GL import *
 import glfw
-from math import sin, cos, radians
+from math import sin, cos, radians, dist
 
 class Camera(object):
-    def __init__(self, position=[0, 0, 100], rotation=[0, 0, 0]):
+    def __init__(self, position=[0, 0, 0], rotation=[0, 0, 0], planet=None):
         self.position = position
         self.rotation = rotation
+        self.planet = planet
         self.mouse_prev = glfw.get_cursor_pos(glfw.get_current_context())
         self.speed = 64
     
@@ -54,6 +55,9 @@ class Camera(object):
             elif self.rotation[0] < -90:
                 self.rotation[0] = -90
         self.mouse_prev = current_position
+        
+        # Calculate the speed based on the distance from the planet
+        self.speed = (dist(self.position, self.planet.center) - (self.planet.size / 2)) / 8
             
         # update view
         glRotatef(self.rotation[0], 1, 0, 0)
