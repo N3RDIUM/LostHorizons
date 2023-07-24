@@ -79,9 +79,7 @@ class Player(object):
             glFogfv(GL_FOG_COLOR, self.planet.atmosphere["color"]+[mlt])
             glFogf(GL_FOG_DENSITY, self.planet.atmosphere["density"]/mlt)
             glFogf(GL_FOG_START, 0)
-            end = self.planet.atmosphere["end"]/(mlt**2)/6
-            print(end)
-            glFogf(GL_FOG_END, end)
+            glFogf(GL_FOG_END, self.planet.atmosphere["end"]/(mlt**2)/6)
             
             # Set background color
             glClearColor(
