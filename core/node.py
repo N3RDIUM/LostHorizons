@@ -132,10 +132,10 @@ class Node:
             self.generated = self.all_children_generated()
             if self.generated:
                 self.remove_old_children()
-        # Calculate the distance between the camera and the center of the quad
+        # Calculate the distance between the player and the center of the quad
         distance = math.dist(self.planet.campos, self.position)
         
-        # If the camera is close enough to the quad, split it
+        # If the player is close enough to the quad, split it
         if distance < self.size * MIN_DISTANCE_MULTIPLIER:
             if len(self.children) == 1 and self.level < MAX_LEVEL:
                 self.parent.split_queue.append(self)

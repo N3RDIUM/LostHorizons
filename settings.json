@@ -4,7 +4,7 @@
         "max_vertices": 1000000
     },
     "LoD": {
-        "max_level": 10,
+        "max_level": 8,
         "processes_per_frame": 2,
         "min_distance_multiplier": 4,
         "max_distance_multiplier": 4

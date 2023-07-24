@@ -29,11 +29,11 @@ class TwoDTerrain:
             for z in range(-self.render_distance, self.render_distance):
                 self.generate_chunk((x, 0, z))
                 
-    def update(self, camera):
+    def update(self, player):
         for chunk in self.chunks.values():
-            chunk.update(camera.position)
+            chunk.update(player.position)
             
-        currchunk = [-camera.position[0]//self.chunksize, -camera.position[2]//self.chunksize]
+        currchunk = [-player.position[0]//self.chunksize, -player.position[2]//self.chunksize]
         chunks = []
         for x in range(-self.render_distance, self.render_distance):
             for z in range(-self.render_distance, self.render_distance):
