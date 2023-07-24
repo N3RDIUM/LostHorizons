@@ -45,7 +45,6 @@ def main():
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
     
-    # TODO: Move this to player, adjust according to distance from planet
     # TODO: Add a skybox
     # TODO: Add a sun
     # TODO: Add atmosphere shader
