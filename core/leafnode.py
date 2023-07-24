@@ -15,11 +15,7 @@ class LeafNode:
         self.mesh = None
         self.parent = parent
         self.planet = planet
-        self.color = [
-            0.6+abs(random.random()*0.4),
-            0.6+abs(random.random()*0.4),
-            0.6+abs(random.random()*0.4)
-        ]
+        self.color = [0, 102/256, 39/256]
         self.generate()
         self.generated = True
         self.type = "leaf"
@@ -157,9 +153,7 @@ class LeafNode:
             # Add noise
             _noise = self.avg([
                 noise.snoise3(x/10, y/10, z/10) * 10,
-                noise.snoise3(x/100, y/100, z/100) * 100,
                 noise.snoise3(x/1000, y/1000, z/1000) * 1000,
-                noise.snoise3(x/100000, y/100000, z/100000) * 10000,
             ]) / 2
             vector = [x, y, z]
             vector = self.normalize(vector)

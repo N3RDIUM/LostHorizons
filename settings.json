@@ -5,8 +5,8 @@
     },
     "LoD": {
         "max_level": 8,
-        "processes_per_frame": 2,
-        "min_distance_multiplier": 4,
+        "processes_per_frame": 1,
+        "min_distance_multiplier": 6,
         "max_distance_multiplier": 4
     }
 }

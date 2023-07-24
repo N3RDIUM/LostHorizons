@@ -29,7 +29,7 @@ def main():
     terrain.generate()
     terrain.atmosphere = {
         "enabled":True,
-        "color":[1, 1, 1],
+        "color":[0/256, 136/256, 255/255],
         "end": terrain.size * 1.3,
         "start": terrain.size,
         "density": 100,
