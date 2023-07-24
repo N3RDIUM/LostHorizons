@@ -112,7 +112,7 @@ class Node:
             pass
         
     def draw(self):
-        if not len(self._children) == 0:
+        if len(self._children) > 0:
             for child in self._children:
                 child.draw()
         else:
@@ -136,10 +136,10 @@ class Node:
         distance = math.dist(self.planet.campos, self.position)
         
         # If the player is close enough to the quad, split it
-        if distance < self.size * MIN_DISTANCE_MULTIPLIER:
+        if distance < self.size * abs(MIN_DISTANCE_MULTIPLIER - self.level/MIN_DISTANCE_MULTIPLIER) * self.level / 4:
             if len(self.children) == 1 and self.level < MAX_LEVEL:
                 self.parent.split_queue.append(self)
-        elif distance > self.size * MAX_DISTANCE_MULTIPLIER * (self.level**2) / 4:
+        elif distance > self.size * MAX_DISTANCE_MULTIPLIER:
             if not len(self.children) == 1:
                 self.parent.unify_queue.append(self)
         for child in self.children:
