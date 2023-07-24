@@ -38,7 +38,7 @@ class LeafNode:
         # Tesselate the quad, make it a sphere, and add noise
         vertices = self.tesselate(vertices, times=self._tesselate_times)
         # vertices = self.spherify_and_add_noise(vertices)
-        vertices = self.add_noise(vertices)
+        vertices = self.spherify_and_add_noise(vertices)
         
         # Convert the points to a triangle mesh
         vertices = self.convert_to_mesh(vertices)
@@ -53,6 +53,7 @@ class LeafNode:
         
         # Create a mesh
         self.mesh = Mesh(vertices, indices, normals)
+        self.parent.position = self.get_average_position(vertices)
         
     def tesselate(self, vertices, times=1):
         if times == 0:
@@ -138,6 +139,9 @@ class LeafNode:
     
     def spherify_and_add_noise(self, vertices):
         CENTER = [self.planet.size / 2]*3
+        CENTER[0] += self.planet.position[0]
+        CENTER[1] += self.planet.position[1]
+        CENTER[2] += self.planet.position[2]
         for i in range(len(vertices)):
             v = vertices[i]
             x = v[0] - CENTER[0]
@@ -154,19 +158,12 @@ class LeafNode:
             _noise = self.avg([
                 # Local noise
                 noise.snoise3(x, y, z) * 0.25,
-                noise.snoise3(x / 2, y / 2, z / 2) * 0.5,
-                noise.snoise3(x / 4, y / 4, z / 4) * 2,
-                noise.snoise3(x / 8, y / 8, z / 8) * 4,
-                noise.snoise3(x / 16, y / 16, z / 16) * 8,
                 noise.snoise3(x / 32, y / 32, z / 32) * 16,
-                
                 # Getting larger
-                noise.snoise3(x / 320, y / 320, z / 320) * 32,
                 noise.snoise3(x / 640, y / 640, z / 640) * 64,
-                
                 # Noise that produces continents
                 noise.snoise3(x / 128, y / 128, z / 128) * 128,
-            ])
+            ]) / 2
             vector = [x, y, z]
             vector = self.normalize(vector)
             x = x + vector[0] * _noise
@@ -192,9 +189,6 @@ class LeafNode:
             u = p2 - p1
             v = p3 - p1
             n = np.cross(u, v)
-            # Reverse the normal for now
-            # TODO: Remove this if we are doing planet normals
-            n *= -1
             normals.append(n)
             normals.append(n)
             normals.append(n)

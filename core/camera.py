@@ -3,7 +3,7 @@ import glfw
 from math import sin, cos, radians
 
 class Camera(object):
-    def __init__(self, position=[0, 0, 0], rotation=[0, 0, 0]):
+    def __init__(self, position=[0, 0, 100], rotation=[0, 0, 0]):
         self.position = position
         self.rotation = rotation
         self.mouse_prev = glfw.get_cursor_pos(glfw.get_current_context())

@@ -20,8 +20,17 @@ class Node:
         self.toassign = toassign
         self.children = []
         self._children = []
-        self.size = (self.rect[1][0] - self.rect[0][0]) / 2
-        self.position = []
+        self.position = [
+            (self.rect[0][0]+self.rect[1][0]+self.rect[2][0]+self.rect[3][0])/4,
+            (self.rect[0][1]+self.rect[1][1]+self.rect[2][1]+self.rect[3][1])/4,
+            (self.rect[0][2]+self.rect[1][2]+self.rect[2][2]+self.rect[3][2])/4
+        ]
+        self.size = (
+            math.dist(rect[0], self.position)+\
+            math.dist(rect[1], self.position)+\
+            math.dist(rect[2], self.position)+\
+            math.dist(rect[3], self.position)
+        )/4
         self.generated = False
         
         self.split_queue = []
@@ -34,8 +43,7 @@ class Node:
             self._children.append(child)
         self.children = []
         
-    def remove_old_children(self): 
-        # TODO: Still causes segfaults at high player speeds
+    def remove_old_children(self):
         for tokill in self._children:
             tokill.dispose()
             del tokill
@@ -44,11 +52,6 @@ class Node:
     def generate_unified(self):
         lnode = LeafNode(self.rect, 4, self, self.planet)
         self.children.append(lnode)
-        self.position = [
-            (self.rect[0][0]+self.rect[1][0]+self.rect[2][0]+self.rect[3][0])/4,
-            (self.rect[0][1]+self.rect[1][1]+self.rect[2][1]+self.rect[3][1])/4,
-            (self.rect[0][2]+self.rect[1][2]+self.rect[2][2]+self.rect[3][2])/4
-        ]
         self.kill_peers()
         self.type = "leaf"
         self.generated = True
@@ -93,12 +96,7 @@ class Node:
         self.planet.generation_queue.append(node3)
         self.planet.generation_queue.append(node4)
         
-        # Set the position of the quad
-        self.position = [
-            (self.rect[0][0]+self.rect[1][0]+self.rect[2][0]+self.rect[3][0])/4,
-            (self.rect[0][1]+self.rect[1][1]+self.rect[2][1]+self.rect[3][1])/4,
-            (self.rect[0][2]+self.rect[1][2]+self.rect[2][2]+self.rect[3][2])/4
-        ]
+        # Set some other properties
         self.type = "node"
         self.kill_peers()
         
@@ -135,15 +133,7 @@ class Node:
             if self.generated:
                 self.remove_old_children()
         # Calculate the distance between the camera and the center of the quad
-        distance = math.dist([
-            -camera_position[0],
-            -camera_position[1],
-            -camera_position[2],
-        ], [
-            self.position[0],
-            self.position[1],
-            self.position[2]
-        ])
+        distance = math.dist(self.planet.campos, self.position)
         
         # If the camera is close enough to the quad, split it
         if distance < self.size * MIN_DISTANCE_MULTIPLIER:
@@ -178,6 +168,11 @@ class Node:
                     tree.generate_unified()
                 except ValueError:
                     pass
+            
+    def sphere_to_cube(self, position):
+        # Convert a position that lies on the tesellated sphere
+        # Back to a position on the cube
+        CENTER = self.planet.position
                 
     def dispose(self):
         for child in self.children:

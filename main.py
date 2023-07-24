@@ -5,7 +5,7 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 
 from core.camera import Camera
-from core.twod import TwoDTerrain as Terrain
+from core.planet import Planet
 from settings import settings
 
 glutInit()
@@ -26,7 +26,7 @@ def main():
     
     # Create a Node and camera
     camera = Camera(position=[0, 0, 0])
-    terrain = Terrain()
+    terrain = Planet()
     terrain.generate()
     
     def _setup_3d():
