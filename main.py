@@ -24,7 +24,7 @@ def main():
     # Make the window's context current
     glfw.make_context_current(window)
     
-    # Create a quadtree and camera
+    # Create a Node and camera
     camera = Camera(position=[0, 0, 0])
     terrain = Terrain()
     terrain.generate()

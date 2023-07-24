@@ -1,5 +1,5 @@
 from core.planet import DummyPlanet
-from core.quadtree import QuadTree
+from core.node import Node
 from settings import settings
 PROCESSES_PER_FRAME = settings['LoD']['processes_per_frame']
 
@@ -14,7 +14,7 @@ class TwoDTerrain:
         self.type = "planet"
         
     def generate_chunk(self, position):
-        self.chunks[tuple(position)] = QuadTree(
+        self.chunks[tuple(position)] = Node(
             rect=[
                 (position[0]*self.chunksize,0,position[2]*self.chunksize),
                 (position[0]*self.chunksize+self.chunksize,0,position[2]*self.chunksize),
@@ -68,7 +68,7 @@ class TwoDTerrain:
                     tounify.dispose()
                     del self.chunks[tounify_index]
                     del tounify
-                    tounify = QuadTree(rect, 1, parent, planet=planet)
+                    tounify = Node(rect, 1, parent, planet=planet)
                     tounify.generate_unified()
                     self.chunks[tounify_index] = tounify
                 else:

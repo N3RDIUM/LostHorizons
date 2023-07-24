@@ -10,7 +10,7 @@ PROCESSES_PER_FRAME = settings['LoD']['processes_per_frame']
 MIN_DISTANCE_MULTIPLIER = settings['LoD']['min_distance_multiplier']
 MAX_DISTANCE_MULTIPLIER = settings['LoD']['max_distance_multiplier']
 
-class QuadTree:
+class Node:
     def __init__(self, rect=[(0,0,0), (100,0,0), (100,0,100), (0,0,100)], level=1, parent=None, planet=None, tokill=None, toassign=None):
         self.rect = rect
         self.level = level
@@ -76,10 +76,10 @@ class QuadTree:
         rect4 = [midpoint4, midpoint5, midpoint3, corner4]
         
         # Create a node for each quad
-        node1 = QuadTree(rect=rect1, level=self.level + 1, parent=self, planet=self.planet)
-        node2 = QuadTree(rect=rect2, level=self.level + 1, parent=self, planet=self.planet)
-        node3 = QuadTree(rect=rect3, level=self.level + 1, parent=self, planet=self.planet)
-        node4 = QuadTree(rect=rect4, level=self.level + 1, parent=self, planet=self.planet)
+        node1 = Node(rect=rect1, level=self.level + 1, parent=self, planet=self.planet)
+        node2 = Node(rect=rect2, level=self.level + 1, parent=self, planet=self.planet)
+        node3 = Node(rect=rect3, level=self.level + 1, parent=self, planet=self.planet)
+        node4 = Node(rect=rect4, level=self.level + 1, parent=self, planet=self.planet)
         
         # Add the nodes to the children list
         self.children.append(node1)
@@ -114,10 +114,12 @@ class QuadTree:
             pass
         
     def draw(self):
-        for child in self.children:
-            child.draw()
-        for child in self._children:
-            child.draw()
+        if not len(self._children) == 0:
+            for child in self._children:
+                child.draw()
+        else:
+            for child in self.children:
+                child.draw()
             
     def all_children_generated(self):
         for child in self.children:
@@ -172,7 +174,7 @@ class QuadTree:
                 level = tounify.level
                 try:
                     tounify_index = self.children.index(tounify)
-                    tree = QuadTree(rect, level, parent, planet=planet, tokill=tounify, toassign = tounify_index)
+                    tree = Node(rect, level, parent, planet=planet, tokill=tounify, toassign = tounify_index)
                     tree.generate_unified()
                 except ValueError:
                     pass
