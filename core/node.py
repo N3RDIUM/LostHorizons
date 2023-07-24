@@ -139,7 +139,7 @@ class Node:
         if distance < self.size * MIN_DISTANCE_MULTIPLIER:
             if len(self.children) == 1 and self.level < MAX_LEVEL:
                 self.parent.split_queue.append(self)
-        elif distance > self.size * MAX_DISTANCE_MULTIPLIER:
+        elif distance > self.size * MAX_DISTANCE_MULTIPLIER * (self.level**2) / 4:
             if not len(self.children) == 1:
                 self.parent.unify_queue.append(self)
         for child in self.children:
