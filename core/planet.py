@@ -113,7 +113,7 @@ class Planet:
         self.rotation_details["current"][0] += self.rotation_details["speed"][0]
         self.rotation_details["current"][1] += self.rotation_details["speed"][1]
         self.rotation_details["current"][2] += self.rotation_details["speed"][2]
-        
+    
         # Update the chunks
         if len(self.to_update) == 0:
             self.to_update = list(self.children.keys())
