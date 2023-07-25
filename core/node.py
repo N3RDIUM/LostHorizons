@@ -9,6 +9,7 @@ MAX_LEVEL = settings['LoD']['max_level']
 PROCESSES_PER_FRAME = settings['LoD']['processes_per_frame']
 MIN_DISTANCE_MULTIPLIER = settings['LoD']['min_distance_multiplier']
 MAX_DISTANCE_MULTIPLIER = settings['LoD']['max_distance_multiplier']
+MIN_LEVEL_MLT = MAX_LEVEL - 4
 
 class Node:
     def __init__(self, rect=[(0,0,0), (100,0,0), (100,0,100), (0,0,100)], level=1, parent=None, planet=None, tokill=None, toassign=None):
@@ -137,10 +138,14 @@ class Node:
         distance = math.dist(self.planet.campos, self.position)
         
         # If the player is close enough to the quad, split it
-        if distance < self.size * abs(MIN_DISTANCE_MULTIPLIER + self.level/MIN_DISTANCE_MULTIPLIER):
+        if self.level > MIN_LEVEL_MLT:
+            mlt = abs(MIN_DISTANCE_MULTIPLIER + self.level / MIN_DISTANCE_MULTIPLIER * 2)
+        else:
+            mlt = MIN_DISTANCE_MULTIPLIER        
+        if distance < self.size * mlt:
             if len(self.children) == 1 and self.level < MAX_LEVEL:
                 self.parent.split_queue.append(self)
-        elif distance > self.size * MAX_DISTANCE_MULTIPLIER:
+        elif distance > self.size * mlt:
             if not len(self.children) == 1:
                 self.parent.unify_queue.append(self)
         

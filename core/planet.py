@@ -93,7 +93,8 @@ class Planet:
             # in the array self.to_update
             distances = []
             for chunk in self.to_update:
-                distances.append((chunk, self.children[chunk].distance_to(player_position)))
+                # Level weightage
+                distances.append((chunk, self.children[chunk].distance_to(player_position) * self.children[chunk].level))
             distances.sort(key=lambda x: x[1])
             distances.reverse()
             result = []
