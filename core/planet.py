@@ -3,6 +3,8 @@ from core.node import Node
 from settings import settings
 from OpenGL.GL import *
 from OpenGL.GLUT import *
+
+MAX_UPDATES_PER_FRAME = settings["LoD"]["max_updates_per_frame"]
 PROCESSES_PER_FRAME = settings['LoD']['processes_per_frame']
 
 glutInit()
@@ -116,11 +118,18 @@ class Planet:
             self.to_update = list(self.children.keys())
         else:
             self.sort_chunks(player.position)
-            for i in range(len(self.children)//PROCESSES_PER_FRAME):
-                try:
-                    _ = self.to_update.pop(0)
-                    self.children[_].update()
-                except: continue
+            if not len(self.children)//PROCESSES_PER_FRAME > MAX_UPDATES_PER_FRAME:
+                for i in range(len(self.children)//PROCESSES_PER_FRAME):
+                    try:
+                        _ = self.to_update.pop(0)
+                        self.children[_].update()
+                    except: continue
+            else:
+                for i in range(MAX_UPDATES_PER_FRAME):
+                    try:
+                        _ = self.to_update.pop(0)
+                        self.children[_].update()
+                    except: continue
         
         for i in range(PROCESSES_PER_FRAME):        
             # Process the split queue

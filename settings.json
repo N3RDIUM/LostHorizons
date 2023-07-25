@@ -6,6 +6,7 @@
     "LoD": {
         "max_level": 10,
         "processes_per_frame": 4,
+        "max_updates_per_frame": 128,
         "min_distance_multiplier": 6,
         "max_distance_multiplier": 4
     }

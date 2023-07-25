@@ -8,7 +8,8 @@ class Player(object):
         self.rotation = rotation
         self.planet = planet
         self.mouse_prev = glfw.get_cursor_pos(glfw.get_current_context())
-        self.speed = 64
+        self.speed_mlt = 64000
+        self.speed = self.speed_mlt
     
     def update(self, window):
         # move forward
@@ -56,8 +57,9 @@ class Player(object):
                 self.rotation[0] = -90
         self.mouse_prev = current_position
         
-        # Calculate the speed based on the distance from the planet
-        self.speed = (dist(self.position, self.planet.center) - (self.planet.size / 2)) / 8
+        # Near the surface of the planet, speed is 1.
+        # As we get farther away, speed increases exponentially.
+        self.speed = ((dist(self.position, self.planet.center) - self.planet.size) / self.planet.size) * self.speed_mlt / 100000 * self.planet.size
             
         # update view
         glRotatef(self.rotation[0], 1, 0, 0)
@@ -79,7 +81,7 @@ class Player(object):
             glFogfv(GL_FOG_COLOR, self.planet.atmosphere["color"]+[mlt])
             glFogf(GL_FOG_DENSITY, self.planet.atmosphere["density"]/mlt)
             glFogf(GL_FOG_START, 0)
-            glFogf(GL_FOG_END, self.planet.atmosphere["end"]/(mlt**2)/6)
+            glFogf(GL_FOG_END, self.planet.atmosphere["end"]/(mlt**2)/12)
             
             # Set background color
             glClearColor(

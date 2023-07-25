@@ -25,7 +25,7 @@ def main():
     glfw.make_context_current(window)
     
     # Create a Node and player
-    terrain = Planet(size=100000)
+    terrain = Planet(size=1000000)
     terrain.generate()
     terrain.atmosphere = {
         "enabled":True,
@@ -34,14 +34,14 @@ def main():
         "start": terrain.size,
         "density": 100,
     }
-    player = Player(position=[0, 0, 104000], rotation=[0, 180, 0], planet=terrain)
+    player = Player(position=[0, 0, 1400000], rotation=[0, 180, 0], planet=terrain)
     
     def _setup_3d():
         glEnable(GL_DEPTH_TEST)
         glViewport(0, 0, *glfw.get_window_size(window))
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        gluPerspective(60, glfw.get_window_size(window)[0] / glfw.get_window_size(window)[1], 4, 10000000)
+        gluPerspective(60, glfw.get_window_size(window)[0] / glfw.get_window_size(window)[1], 4, 100000000)
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
     
