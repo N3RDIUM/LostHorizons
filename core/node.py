@@ -137,7 +137,7 @@ class Node:
         distance = math.dist(self.planet.campos, self.position)
         
         # If the player is close enough to the quad, split it
-        if distance < self.size * abs(MIN_DISTANCE_MULTIPLIER - self.level/MIN_DISTANCE_MULTIPLIER) * self.level / 4:
+        if distance < self.size * abs(MIN_DISTANCE_MULTIPLIER + self.level/MIN_DISTANCE_MULTIPLIER):
             if len(self.children) == 1 and self.level < MAX_LEVEL:
                 self.parent.split_queue.append(self)
         elif distance > self.size * MAX_DISTANCE_MULTIPLIER:
