@@ -45,6 +45,8 @@ class Planet:
         self.unify_queue = []
         self.campos = [0, 0, 0] # player position
         self.type = "planet"
+        self.children = {} # All children
+        self.to_update = []
         
     def generate_chunk(self, side, rect):
         self.chunks[side] = Node(rect=rect,parent=self, planet=self)
@@ -83,6 +85,21 @@ class Planet:
         z3 = z2
         return [x3, y3, z3]
         
+    def sort_chunks(self, player_position):
+        try:
+            # Sort chunks in order of distance from player
+            # in the array self.to_update
+            distances = []
+            for chunk in self.to_update:
+                distances.append((chunk, self.children[chunk].distance_to(player_position)))
+            distances.sort(key=lambda x: x[1])
+            distances.reverse()
+            result = []
+            for i in distances:
+                result.append(i[0])
+            self.to_update = result
+        except: pass
+    
     def update(self, player):
         # Update the player position and planet rotation
         self.campos = self.rotate_point([
@@ -95,8 +112,15 @@ class Planet:
         self.rotation_details["current"][2] += self.rotation_details["speed"][2]
         
         # Update the chunks
-        for chunk in self.chunks.values():
-            chunk.update(player.position)
+        if len(self.to_update) == 0:
+            self.to_update = list(self.children.keys())
+        else:
+            self.sort_chunks(player.position)
+            for i in range(len(self.children)//PROCESSES_PER_FRAME):
+                try:
+                    _ = self.to_update.pop(0)
+                    self.children[_].update()
+                except: continue
         
         for i in range(PROCESSES_PER_FRAME):        
             # Process the split queue

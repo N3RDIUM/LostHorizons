@@ -36,6 +36,7 @@ class Node:
         self.split_queue = []
         self.unify_queue = []
         self.id = uuid.uuid4()
+        self.planet.children[self.id] = self
         self.type = None
         
     def swap_children(self):
@@ -125,7 +126,7 @@ class Node:
                 return False
         return True
         
-    def update(self, camera_position):
+    def update(self):
         if len(self.position) == 0:
             return
         if self.type == "node":
@@ -142,11 +143,6 @@ class Node:
         elif distance > self.size * MAX_DISTANCE_MULTIPLIER:
             if not len(self.children) == 1:
                 self.parent.unify_queue.append(self)
-        for child in self.children:
-            try:
-                child.update(camera_position)
-            except:
-                pass
         
         for i in range(PROCESSES_PER_FRAME):
             # Process the split queue
@@ -168,13 +164,15 @@ class Node:
                     tree.generate_unified()
                 except ValueError:
                     pass
-            
-    def sphere_to_cube(self, position):
-        # Convert a position that lies on the tesellated sphere
-        # Back to a position on the cube
-        CENTER = self.planet.position
+        
+    def distance_to(self, position):
+        return math.dist(self.position, position)
                 
     def dispose(self):
+        try:
+            del self.planet.children[self.id]
+        except:
+            pass
         for child in self.children:
             child.dispose()
         del self.children[:]
