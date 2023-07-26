@@ -150,11 +150,15 @@ class LeafNode:
             y = y / length * self.planet.size
             z = z / length * self.planet.size
             
+            mountain_height = (((noise.snoise3(x/8000, y/8000, z/8000) * 400)**2) - 80000) / 32
+            continent_height = noise.snoise3(x/80000, y/80000, z/80000) * 20000
+            if mountain_height < 0:
+                mountain_height = 0
             # Add noise
             _noise = self.avg([
-                noise.snoise3(x/10, y/10, z/10) * 10,
-                noise.snoise3(x/1000, y/1000, z/1000) * 1000,
-            ]) / 2
+                noise.snoise3(x/10, y/10, z/10) * 64,
+                continent_height
+            ]) / 2 + mountain_height
             vector = [x, y, z]
             vector = self.normalize(vector)
             x = x + vector[0] * _noise

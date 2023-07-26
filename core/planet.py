@@ -15,7 +15,7 @@ def drawSphere(x, y, z, radius=1):
     glPopMatrix()
 
 class DummyPlanet:
-    def __init__(self, size=100, position=[0, 0, 0], rotation_details={"current":[4,8,12], "speed":[0,0.01,0]}, atmosphere={"enabled":False}):
+    def __init__(self, size=100, position=[0, 0, 0], rotation_details={"current":[4,8,12], "speed":[0,0,0]}, atmosphere={"enabled":False}):
         self.size = size
         self.position = position
         self.rotation_details = rotation_details
@@ -110,9 +110,10 @@ class Planet:
             -player.position[1]+self.position[1],
             -player.position[2]+self.position[2]
         ])
-        self.rotation_details["current"][0] += self.rotation_details["speed"][0]
-        self.rotation_details["current"][1] += self.rotation_details["speed"][1]
-        self.rotation_details["current"][2] += self.rotation_details["speed"][2]
+        # self.rotation_details["current"][0] += self.rotation_details["speed"][0]
+        # self.rotation_details["current"][1] += self.rotation_details["speed"][1]
+        # self.rotation_details["current"][2] += self.rotation_details["speed"][2]
+        # TODO: Move this to physics
     
         # Update the chunks
         if len(self.to_update) == 0:
