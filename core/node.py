@@ -51,7 +51,7 @@ class Node:
         self._children = []
         
     def generate_unified(self):
-        lnode = LeafNode(self.rect, 4, self, self.planet)
+        lnode = LeafNode(self.rect, int(4+self.level/MAX_LEVEL), self, self.planet)
         self.children.append(lnode)
         self.kill_peers()
         self.type = "leaf"
