@@ -150,9 +150,11 @@ class LeafNode:
             y = y / length * self.planet.size
             z = z / length * self.planet.size
             
-            bump_noise = noise.snoise3(x / 100, y / 100, z / 100) * 32
-            _noise = bump_noise
-            
+            # Add noise
+            _noise = self.avg([
+                noise.snoise3(x/10, y/10, z/10) * 10,
+                noise.snoise3(x/1000, y/1000, z/1000) * 1000,
+            ]) / 2
             vector = [x, y, z]
             vector = self.normalize(vector)
             x = x + vector[0] * _noise
