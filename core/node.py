@@ -8,7 +8,7 @@ MAX_LEVEL = settings['LoD']['max_level']
 PROCESSES_PER_FRAME = settings['LoD']['processes_per_frame']
 MIN_DISTANCE_MULTIPLIER = settings['LoD']['min_distance_multiplier']
 MAX_DISTANCE_MULTIPLIER = settings['LoD']['max_distance_multiplier']
-MIN_LEVEL_MLT = MAX_LEVEL - 3
+MIN_LEVEL_MLT = MAX_LEVEL // 2
 
 class Node:
     def __init__(self, rect=[(0,0,0), (100,0,0), (100,0,100), (0,0,100)], level=1, parent=None, planet=None, tokill=None, toassign=None):

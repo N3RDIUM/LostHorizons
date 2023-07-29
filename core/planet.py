@@ -32,7 +32,7 @@ class DummyPlanet:
         self.type = "planet"
         
 class Planet:
-    def __init__(self, size=400, position=[0, 0, 0], rotation_details={"current":[4,8,12], "speed":[0,0.01,0]}, atmosphere={"enabled":False}):
+    def __init__(self, size=400, position=[0, 0, 0], rotation_details={"current":[0,0,0], "speed":[0,0,0]}, atmosphere={"enabled":False}):
         self.size = size
         self.position = position
         self.rotation_details = rotation_details
@@ -94,9 +94,8 @@ class Planet:
             distances = []
             for chunk in self.to_update:
                 # Level weightage
-                distances.append((chunk, self.children[chunk].distance_to(player_position) * self.children[chunk].level))
+                distances.append((chunk, self.children[chunk].distance_to(player_position) / self.children[chunk].level))
             distances.sort(key=lambda x: x[1])
-            distances.reverse()
             result = []
             for i in distances:
                 result.append(i[0])

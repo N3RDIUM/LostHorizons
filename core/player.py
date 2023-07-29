@@ -8,7 +8,7 @@ class Player(object):
         self.rotation = rotation
         self.planet = planet
         self.mouse_prev = glfw.get_cursor_pos(glfw.get_current_context())
-        self.speed_mlt = 64000
+        self.speed_mlt = 6400
         self.speed = self.speed_mlt
     
     def update(self, window):
@@ -59,7 +59,7 @@ class Player(object):
         
         # Near the surface of the planet, speed is 1.
         # As we get farther away, speed increases exponentially.
-        self.speed = ((dist(self.position, self.planet.center) - (self.planet.size / 1000 * 999)) / self.planet.size) * self.speed_mlt / 100000 * self.planet.size
+        self.speed = ((dist(self.position, self.planet.center) - (self.planet.size / 1000 * 997)) / self.planet.size) * self.speed_mlt / 100000 * self.planet.size
             
         # update view
         glRotatef(self.rotation[0], 1, 0, 0)
