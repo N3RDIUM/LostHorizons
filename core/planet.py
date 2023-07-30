@@ -133,6 +133,7 @@ class Planet:
                     _ = self.to_update.pop(0)
                     try: self.children[_].update()
                     except KeyError: continue
+            if self.check_overtime(t): return
                     
         for i in range(CALLS_PER_FRAME):
             if len(self.call_queue) > 0:
@@ -163,14 +164,14 @@ class Planet:
                     self.chunks[tounify_index] = tounify
                 else:
                     pass
-            # if self.check_overtime(t): return
+            if self.check_overtime(t): return
                 
         for i in range(PROCESSES_PER_FRAME):
             if len(self.generation_queue) == 0:
                 return
             _ = self.generation_queue.pop(-1)
             _.generate_unified()
-            # if self.check_overtime(t): return
+            if self.check_overtime(t): return
         
     def findchunk(self, id):
         for chunk in self.chunks.keys():
