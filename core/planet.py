@@ -108,6 +108,7 @@ class Planet:
         
     def check_overtime(self, t):
         if time.time() - t > 1/OVERTIME_DENOMINATOR:
+            print(f"{t} [WARNING] Overtime detected")
             return True
     
     def update(self, player):
