@@ -23,6 +23,7 @@ class LeafNode:
         self._normals = []
         self.generated = False
         self.type = "leaf"
+        self._frame = self.planet.frame
         self.generate()
         
     def generate(self):
@@ -232,9 +233,12 @@ class LeafNode:
         if self.mesh is not None:
             glColor3f(self.color[0], self.color[1], self.color[2])
             self.mesh.draw()
-        if len(self.call_queue) > 0:
-            call = self.call_queue.pop(0)
-            call()
+        # Every 10 frames, update the mesh
+        if self.planet.frame - self._frame > 4:
+            if len(self.call_queue) > 0:
+                call = self.call_queue.pop(0)
+                call()
+            self._frame = self.planet.frame
                 
     def dispose(self):
         try:

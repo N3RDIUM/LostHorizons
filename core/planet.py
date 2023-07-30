@@ -49,6 +49,7 @@ class Planet:
         self.type = "planet"
         self.children = {} # All children
         self.to_update = []
+        self.frame = 0
         
     def generate_chunk(self, side, rect):
         self.chunks[side] = Node(rect=rect,parent=self, planet=self)
@@ -172,3 +173,4 @@ class Planet:
         # drawSphere(0, 0, 0, self.size)
         glDisable(GL_BLEND)
         glPopMatrix()
+        self.frame += 1

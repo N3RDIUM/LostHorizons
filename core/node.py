@@ -39,8 +39,6 @@ class Node:
         self.unify_queue = []
         self.id = uuid.uuid4()
         self.planet.children[self.id] = self
-        if self.toassign:
-            self.parent.children[self.toassign] = self
         self.type = None
         
     def swap_children(self):
@@ -107,13 +105,6 @@ class Node:
         # Set some other properties
         self.type = "node"
         
-    def kill_peers(self):
-        if self.tokill:
-            id = self.tokill.id
-            del self.parent.children[self.tokill]
-            self.planet.children[id] = self
-        self.generated = True
-        
     def draw(self):
         for child in self._children:
             child.draw()
@@ -132,6 +123,19 @@ class Node:
         self.generated = self.all_children_generated()
         if self.generated:
             self.remove_old_children()
+            try:
+                if self.tokill:
+                    self.tokill.dispose()
+                    idx = self.planet.findchunk(self.tokill)
+                    pidx = self.planet.findchunk(self)
+                    del self.tokill
+                    self.tokill = None
+                    try: del self.planet.chunks[idx] 
+                    except: pass
+                    try: del self.planet.chunks[pidx]
+                    except: pass
+            except:
+                pass
         # Calculate the distance between the player and the center of the quad
         distance = math.dist(self.planet.campos, self.position)
         
@@ -163,14 +167,19 @@ class Node:
                 level = tounify.level
                 try:
                     tounify_index = self.children.index(tounify)
-                    tree = Node(rect, level, parent, planet=planet, tokill=tounify)
+                    tree = Node(rect, level, parent, planet=planet, tokill=tounify, toassign=tounify_index)
                     tree.generate_unified()
-                    self.children[tounify_index] = tree
+                    self.children.append(tree)
                 except ValueError:
                     pass
         
     def distance_to(self, position):
         return math.dist(self.position, position)
+    
+    def findchunk(self, chunk):
+        for i in range(len(self.children)):
+            if self.children[i].id == chunk.id:
+                return i
                 
     def dispose(self):
         try:
