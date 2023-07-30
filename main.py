@@ -34,7 +34,7 @@ def main():
         "start": terrain.size,
         "density": 100,
     }
-    player = Player(position=[0, 0, 1000100], rotation=[0, 180, 0], planet=terrain)
+    player = Player(position=[0, 0, 1800000], rotation=[0, 180, 0], planet=terrain)
     
     def _setup_3d():
         glEnable(GL_DEPTH_TEST)

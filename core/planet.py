@@ -3,9 +3,11 @@ from core.node import Node
 from settings import settings
 from OpenGL.GL import *
 from OpenGL.GLUT import *
+import time
 
 MAX_UPDATES_PER_FRAME = settings["LoD"]["max_updates_per_frame"]
 PROCESSES_PER_FRAME = settings['LoD']['processes_per_frame']
+CALLS_PER_FRAME = settings['LoD']['calls_per_frame']
 
 glutInit()
 def drawSphere(x, y, z, radius=1):
@@ -102,8 +104,14 @@ class Planet:
                 result.append(i[0])
             self.to_update = result
         except: pass
+        
+    def check_overtime(self, t):
+        if time.time() - t > 1/32:
+            return True
     
     def update(self, player):
+        # Abort the function if it takes more that 1/32 of a second
+        t = time.time()
         # Update the player position and planet rotation
         self.campos = self.rotate_point([
             -player.position[0]+self.position[0],
@@ -113,7 +121,7 @@ class Planet:
         self.rotation_details["current"][0] += self.rotation_details["speed"][0]
         self.rotation_details["current"][1] += self.rotation_details["speed"][1]
         self.rotation_details["current"][2] += self.rotation_details["speed"][2]
-    
+        if self.check_overtime(t): return
         # Update the chunks
         if len(self.to_update) == 0:
             self.to_update = list(self.children.keys())
@@ -124,9 +132,12 @@ class Planet:
                     _ = self.to_update.pop(0)
                     try: self.children[_].update()
                     except KeyError: continue
-        
-        if len(self.call_queue) > 0:
-            self.call_queue.pop(0)()
+            if self.check_overtime(t): return
+                    
+        for i in range(CALLS_PER_FRAME):
+            if len(self.call_queue) > 0:
+                self.call_queue.pop(0)()
+            if self.check_overtime(t): return
         
         for i in range(PROCESSES_PER_FRAME):        
             # Process the split queue
@@ -152,11 +163,14 @@ class Planet:
                     self.chunks[tounify_index] = tounify
                 else:
                     pass
+            if self.check_overtime(t): return
+                
         for i in range(PROCESSES_PER_FRAME):
             if len(self.generation_queue) == 0:
                 return
             _ = self.generation_queue.pop(-1)
             _.generate_unified()
+            if self.check_overtime(t): return
         
     def findchunk(self, id):
         for chunk in self.chunks.keys():

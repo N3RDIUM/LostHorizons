@@ -1,4 +1,4 @@
-import random
+import numpy as np
 import math
 import numpy as np
 from OpenGL.GL import glColor3f
@@ -33,22 +33,22 @@ class LeafNode:
         corner4 = self.rect[3]
         
         # Now, make a simple quad
-        self._vertices = [
+        self._vertices = np.array([
             corner1, corner2, corner3, corner4
-        ]
+        ], dtype=np.float32)
         
         for i in range(self._tesselate_times + 2):
-            self.call_queue.append(self._tes)
+            self.planet.call_queue.append(self._tes)
         
-        self.call_queue.append(self._sphere_noise)
-        self.call_queue.append(self._meshify)
-        self.call_queue.append(self._finalise_mesh)
+        self.planet.call_queue.append(self._sphere_noise)
+        self.planet.call_queue.append(self._meshify)
+        self.planet.call_queue.append(self._finalise_mesh)
     
     def _tes(self):
         if self.times_tessed >= self._tesselate_times:
             return
         # Tesselate the quad, make it a sphere, and add noise
-        self._vertices = self.tesselate(self._vertices, times=1)
+        self._vertices = np.array(self.tesselate(self._vertices, times=1), dtype=np.float32)
         self.times_tessed += 1
     
     def _sphere_noise(self):
@@ -67,8 +67,6 @@ class LeafNode:
         self._normals = self.get_normals(
             np.array(self._vertices)
         )
-        
-        self.mesh = Mesh(self._vertices, self._indices, self._normals)
         self.parent.position = self.get_average_position(self._vertices)
         self.generated = True
         
@@ -112,7 +110,7 @@ class LeafNode:
             new_vertices.append(midpoint3)
             new_vertices.append(corner4)
             
-        return self.tesselate(new_vertices, times - 1)
+        return np.array(self.tesselate(new_vertices, times - 1), dtype=np.float32)
 
     @staticmethod
     def normalize(vector):
@@ -147,11 +145,11 @@ class LeafNode:
         This is for the 2d version
         """
         for i in range(len(vertices)):
-            vertices[i] = (
+            vertices[i] = [
                 vertices[i][0],
                 vertices[i][1] + noise.snoise2(vertices[i][0] / 100, vertices[i][2] / 100) * 32,
                 vertices[i][2]
-            )
+            ]
         return vertices
     
     def spherify_and_add_noise(self, vertices):
@@ -172,23 +170,23 @@ class LeafNode:
             z = z / length * self.planet.size
             
             # Add noise
-            _noise = self.fractal_noise((x, y, z))
             vector = [x, y, z]
             vector = self.normalize(vector)
+            _noise = self.fractal_noise((x * vector[0], y * vector[1], z * vector[2])) * 100
             x = x + vector[0] * _noise
             y = y + vector[1] * _noise
             z = z + vector[2] * _noise
             
-            vertices[i] = (x, y, z)
+            vertices[i] = [x, y, z]
         return vertices
     
     def fractal_noise(self, coords):
         noiseSum = 0
-        amplitude = 1
-        frequency = 1
+        amplitude = 0.01
+        frequency = 0.25
         x, y, z = tuple(coords)
         
-        for i in range(5): # TODO: Add a config value named "octaves"
+        for i in range(12): # TODO: Add a config value named "octaves"
             noiseSum += noise.snoise3(x * frequency, y * frequency, z * frequency) * amplitude
             frequency *= 2
             amplitude /= 2
@@ -233,12 +231,8 @@ class LeafNode:
         if self.mesh is not None:
             glColor3f(self.color[0], self.color[1], self.color[2])
             self.mesh.draw()
-        # Every 10 frames, update the mesh
-        if self.planet.frame - self._frame > 4:
-            if len(self.call_queue) > 0:
-                call = self.call_queue.pop(0)
-                call()
-            self._frame = self.planet.frame
+        else:
+            if self.generated: self.mesh = Mesh(self._vertices, self._indices, self._normals)
                 
     def dispose(self):
         try:

@@ -141,7 +141,7 @@ class Node:
         
         # If the player is close enough to the quad, split it
         if self.level > MIN_LEVEL_MLT:
-            mlt = abs(MIN_DISTANCE_MULTIPLIER + self.level / MIN_DISTANCE_MULTIPLIER * 2) / 2
+            mlt = MIN_DISTANCE_MULTIPLIER * 4
         else:
             mlt = MIN_DISTANCE_MULTIPLIER     
         if distance < self.size * mlt:
