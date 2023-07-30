@@ -5,7 +5,6 @@ import uuid
 
 from settings import settings
 MAX_LEVEL = settings['LoD']['max_level']
-PROCESSES_PER_FRAME = settings['LoD']['processes_per_frame']
 MIN_DISTANCE_MULTIPLIER = settings['LoD']['min_distance_multiplier']
 MAX_DISTANCE_MULTIPLIER = settings['LoD']['max_distance_multiplier']
 MIN_LEVEL_MLT = MAX_LEVEL // 2
@@ -151,7 +150,7 @@ class Node:
             if not len(self.children) == 1:
                 self.parent.unify_queue.append(self)
         
-        for i in range(PROCESSES_PER_FRAME):
+        for i in range(len(self.split_queue) + len(self.unify_queue)):
             # Process the split queue
             tosplit = self.split_queue.pop(0) if len(self.split_queue) > 0 else None
             if tosplit:

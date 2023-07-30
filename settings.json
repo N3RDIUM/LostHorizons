@@ -4,11 +4,8 @@
         "max_vertices": 1000000
     },
     "LoD": {
-        "overtime_denominator": 30,
+        "overtime_denominator": 20,
         "max_level": 16,
-        "processes_per_frame": 8,
-        "calls_per_frame": 8,
-        "max_updates_per_frame": 256,
         "min_distance_multiplier": 2.56,
         "max_distance_multiplier": 2.56,
         "min_tessellation": 4,

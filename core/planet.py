@@ -5,9 +5,6 @@ from OpenGL.GL import *
 from OpenGL.GLUT import *
 import time
 
-MAX_UPDATES_PER_FRAME = settings["LoD"]["max_updates_per_frame"]
-PROCESSES_PER_FRAME = settings['LoD']['processes_per_frame']
-CALLS_PER_FRAME = settings['LoD']['calls_per_frame']
 OVERTIME_DENOMINATOR = settings['LoD']['overtime_denominator']
 
 glutInit()
@@ -53,6 +50,7 @@ class Planet:
         self.children = {} # All children
         self.to_update = []
         self.frame = 0
+        self.last_update_stage = 1
         
     def generate_chunk(self, side, rect):
         self.chunks[side] = Node(rect=rect,parent=self, planet=self)
@@ -91,24 +89,8 @@ class Planet:
         z3 = z2
         return [x3, y3, z3]
         
-    def sort_chunks(self, player_position):
-        try:
-            # Sort chunks in order of distance from player
-            # in the array self.to_update
-            distances = []
-            for chunk in self.to_update:
-                # Level weightage
-                distances.append((chunk, self.children[chunk].distance_to(player_position) / self.children[chunk].level))
-            distances.sort(key=lambda x: x[1])
-            result = []
-            for i in distances:
-                result.append(i[0])
-            self.to_update = result
-        except: pass
-        
     def check_overtime(self, t):
         if time.time() - t > 1/OVERTIME_DENOMINATOR:
-            print(f"{t} [WARNING] Overtime detected")
             return True
     
     def update(self, player):
@@ -125,54 +107,61 @@ class Planet:
         self.rotation_details["current"][2] += self.rotation_details["speed"][2]
         if self.check_overtime(t): return
         # Update the chunks
-        if len(self.to_update) == 0:
-            self.to_update = list(self.children.keys())
-        else:
-            self.sort_chunks(player.position)
-            for i in range(MAX_UPDATES_PER_FRAME):
-                if len(self.to_update) > 0:
-                    _ = self.to_update.pop(0)
-                    try: self.children[_].update()
-                    except KeyError: continue
-            if self.check_overtime(t): return
-                    
-        for i in range(CALLS_PER_FRAME):
-            if len(self.call_queue) > 0:
-                self.call_queue.pop(0)()
-            if self.check_overtime(t): return
+        if self.last_update_stage <= 1:
+            try:
+                for child in self.children:
+                    self.children[child].update()
+                    self.last_update_stage = 1
+                    if self.check_overtime(t): return
+            except RuntimeError:
+                pass
+            self.last_update_stage = 2
+            
+        if self.last_update_stage <= 2:
+            for i in range(len(self.call_queue)):
+                if len(self.call_queue) > 0:
+                    self.call_queue.pop(0)()
+                self.last_update_stage = 2
+                if self.check_overtime(t): return
+            self.last_update_stage = 3
         
-        for i in range(PROCESSES_PER_FRAME):        
-            # Process the split queue
-            tosplit = self.split_queue.pop(0) if len(self.split_queue) > 0 else None
-            if tosplit:
-                tosplit.swap_children()
-                tosplit.generate_split()
-                
-            # Process the unify queue
-            tounify = self.unify_queue.pop(0) if len(self.unify_queue) > 0 else None
-            if tounify:
-                rect = tounify.rect.copy()
-                parent = tounify.parent
-                planet = tounify.planet
-                id = tounify.id
-                tounify_index = self.findchunk(id)
-                if tounify_index:
-                    tounify.dispose()
-                    del self.chunks[tounify_index]
-                    del tounify
-                    tounify = Node(rect, 1, parent, planet=planet)
-                    tounify.generate_unified()
-                    self.chunks[tounify_index] = tounify
-                else:
-                    pass
-            if self.check_overtime(t): return
-                
-        for i in range(PROCESSES_PER_FRAME):
-            if len(self.generation_queue) == 0:
-                return
-            _ = self.generation_queue.pop(-1)
-            _.generate_unified()
-            if self.check_overtime(t): return
+        if self.last_update_stage <= 3:
+            for i in range(len(self.split_queue) + len(self.unify_queue)):
+                # Process the split queue
+                tosplit = self.split_queue.pop(0) if len(self.split_queue) > 0 else None
+                if tosplit:
+                    tosplit.swap_children()
+                    tosplit.generate_split()
+                    
+                # Process the unify queue
+                tounify = self.unify_queue.pop(0) if len(self.unify_queue) > 0 else None
+                if tounify:
+                    rect = tounify.rect.copy()
+                    parent = tounify.parent
+                    planet = tounify.planet
+                    id = tounify.id
+                    tounify_index = self.findchunk(id)
+                    if tounify_index:
+                        tounify.dispose()
+                        del self.chunks[tounify_index]
+                        del tounify
+                        tounify = Node(rect, 1, parent, planet=planet)
+                        tounify.generate_unified()
+                        self.chunks[tounify_index] = tounify
+                    else:
+                        pass
+                self.last_update_stage = 3
+                if self.check_overtime(t): return
+            self.last_update_stage = 4
+        
+        if self.last_update_stage <= 4:
+            self.last_update_stage = 1
+            for i in range(len(self.generation_queue)):
+                if len(self.generation_queue) == 0:
+                    return
+                _ = self.generation_queue.pop(-1)
+                _.generate_unified()
+                if self.check_overtime(t): return
         
     def findchunk(self, id):
         for chunk in self.chunks.keys():
