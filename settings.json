@@ -4,6 +4,7 @@
         "max_vertices": 1000000
     },
     "LoD": {
+        "processes_per_frame": 32,
         "overtime_denominator": 20,
         "max_level": 16,
         "min_distance_multiplier": 2.56,

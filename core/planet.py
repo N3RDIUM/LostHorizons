@@ -6,6 +6,7 @@ from OpenGL.GLUT import *
 import time
 
 OVERTIME_DENOMINATOR = settings['LoD']['overtime_denominator']
+PROCESSES_PER_FRAME = settings['LoD']['processes_per_frame']
 
 glutInit()
 def drawSphere(x, y, z, radius=1):
@@ -108,14 +109,18 @@ class Planet:
         if self.check_overtime(t): return
         # Update the chunks
         if self.last_update_stage <= 1:
-            try:
-                for child in self.children:
-                    self.children[child].update()
-                    self.last_update_stage = 1
-                    if self.check_overtime(t): return
-            except RuntimeError:
-                pass
+            if len(self.to_update) == 0:
+                self.to_update = list(self.children.keys())
+            else:
+                try:
+                    for i in range(PROCESSES_PER_FRAME):
+                        try: 
+                            if len(self.to_update) > 0: self.children[self.to_update.pop(-1)].update()
+                        except KeyError: pass
+                except RuntimeError:
+                    pass
             self.last_update_stage = 2
+            if self.check_overtime(t): return
             
         if self.last_update_stage <= 2:
             for i in range(len(self.call_queue)):
