@@ -4,10 +4,12 @@
         "max_vertices": 1000000
     },
     "LoD": {
-        "max_level": 18,
-        "processes_per_frame": 16,
-        "max_updates_per_frame": 8,
+        "max_level": 16,
+        "processes_per_frame": 32,
+        "max_updates_per_frame": 256,
         "min_distance_multiplier": 4,
-        "max_distance_multiplier": 2.56
+        "max_distance_multiplier": 2.56,
+        "min_tessellation": 4,
+        "max_tessellation": 6
     }
 }

@@ -118,18 +118,10 @@ class Planet:
             self.to_update = list(self.children.keys())
         else:
             self.sort_chunks(player.position)
-            if not len(self.children)//PROCESSES_PER_FRAME > MAX_UPDATES_PER_FRAME:
-                for i in range(len(self.children)//PROCESSES_PER_FRAME):
-                    try:
-                        _ = self.to_update.pop(0)
-                        self.children[_].update()
-                    except: continue
-            else:
-                for i in range(MAX_UPDATES_PER_FRAME):
-                    try:
-                        _ = self.to_update.pop(0)
-                        self.children[_].update()
-                    except: continue
+            for i in range(MAX_UPDATES_PER_FRAME):
+                if len(self.to_update) > 0:
+                    _ = self.to_update.pop(0)
+                    self.children[_].update()
         
         for i in range(PROCESSES_PER_FRAME):        
             # Process the split queue

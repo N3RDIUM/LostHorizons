@@ -16,9 +16,14 @@ class LeafNode:
         self.parent = parent
         self.planet = planet
         self.color = [0, 102/256, 39/256]
-        self.generate()
-        self.generated = True
+        self.times_tessed = 0
+        self.call_queue = []
+        self._vertices = []
+        self._indices = []
+        self._normals = []
+        self.generated = False
         self.type = "leaf"
+        self.generate()
         
     def generate(self):
         corner1 = self.rect[0]
@@ -27,29 +32,44 @@ class LeafNode:
         corner4 = self.rect[3]
         
         # Now, make a simple quad
-        vertices = [
+        self._vertices = [
             corner1, corner2, corner3, corner4
         ]
         
+        for i in range(self._tesselate_times + 2):
+            self.call_queue.append(self._tes)
+        
+        self.call_queue.append(self._sphere_noise)
+        self.call_queue.append(self._meshify)
+        self.call_queue.append(self._finalise_mesh)
+    
+    def _tes(self):
+        if self.times_tessed >= self._tesselate_times:
+            return
         # Tesselate the quad, make it a sphere, and add noise
-        vertices = self.tesselate(vertices, times=self._tesselate_times)
+        self._vertices = self.tesselate(self._vertices, times=1)
+        self.times_tessed += 1
+    
+    def _sphere_noise(self):
         # vertices = self.spherify_and_add_noise(vertices)
-        vertices = self.spherify_and_add_noise(vertices)
-        
+        self._vertices = self.spherify_and_add_noise(self._vertices)
+    
+    def _meshify(self):
         # Convert the points to a triangle mesh
-        vertices = self.convert_to_mesh(vertices)
-        
+        self._vertices = self.convert_to_mesh(self._vertices)
+    
+    def _finalise_mesh(self):
         # Indices 
-        indices = self.get_indices(vertices)
+        self._indices = self.get_indices(self._vertices)
         
         # Get the normals
-        normals = self.get_normals(
-            np.array(vertices)
+        self._normals = self.get_normals(
+            np.array(self._vertices)
         )
         
-        # Create a mesh
-        self.mesh = Mesh(vertices, indices, normals)
-        self.parent.position = self.get_average_position(vertices)
+        self.mesh = Mesh(self._vertices, self._indices, self._normals)
+        self.parent.position = self.get_average_position(self._vertices)
+        self.generated = True
         
     def tesselate(self, vertices, times=1):
         if times == 0:
@@ -151,10 +171,7 @@ class LeafNode:
             z = z / length * self.planet.size
             
             # Add noise
-            _noise = self.avg([
-                noise.snoise3(x/10, y/10, z/10) * 10,
-                noise.snoise3(x/1000, y/1000, z/1000) * 1000,
-            ]) / 2
+            _noise = self.fractal_noise((x, y, z))
             vector = [x, y, z]
             vector = self.normalize(vector)
             x = x + vector[0] * _noise
@@ -163,6 +180,19 @@ class LeafNode:
             
             vertices[i] = (x, y, z)
         return vertices
+    
+    def fractal_noise(self, coords):
+        noiseSum = 0
+        amplitude = 1
+        frequency = 1
+        x, y, z = tuple(coords)
+        
+        for i in range(5): # TODO: Add a config value named "octaves"
+            noiseSum += noise.snoise3(x * frequency, y * frequency, z * frequency) * amplitude
+            frequency *= 2
+            amplitude /= 2
+            
+        return noiseSum
     
     def get_indices(self, vertices):
         indices = []
@@ -202,6 +232,9 @@ class LeafNode:
         if self.mesh is not None:
             glColor3f(self.color[0], self.color[1], self.color[2])
             self.mesh.draw()
+        if len(self.call_queue) > 0:
+            call = self.call_queue.pop(0)
+            call()
                 
     def dispose(self):
         try:

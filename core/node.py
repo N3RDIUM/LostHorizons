@@ -9,6 +9,8 @@ PROCESSES_PER_FRAME = settings['LoD']['processes_per_frame']
 MIN_DISTANCE_MULTIPLIER = settings['LoD']['min_distance_multiplier']
 MAX_DISTANCE_MULTIPLIER = settings['LoD']['max_distance_multiplier']
 MIN_LEVEL_MLT = MAX_LEVEL // 2
+MIN_TESSELLATION = settings['LoD']['min_tessellation']
+MAX_TESSELLATION = settings['LoD']['max_tessellation']
 
 class Node:
     def __init__(self, rect=[(0,0,0), (100,0,0), (100,0,100), (0,0,100)], level=1, parent=None, planet=None, tokill=None, toassign=None):
@@ -37,6 +39,8 @@ class Node:
         self.unify_queue = []
         self.id = uuid.uuid4()
         self.planet.children[self.id] = self
+        if self.toassign:
+            self.parent.children[self.toassign] = self
         self.type = None
         
     def swap_children(self):
@@ -51,11 +55,14 @@ class Node:
         self._children = []
         
     def generate_unified(self):
-        lnode = LeafNode(self.rect, int(4+self.level/(MAX_LEVEL*2)), self, self.planet)
+        tessellation = 4 + self.level // (MAX_LEVEL // 2)
+        if tessellation > MAX_TESSELLATION:
+            tessellation = MAX_TESSELLATION
+        elif tessellation < MIN_TESSELLATION:
+            tessellation = MIN_TESSELLATION
+        lnode = LeafNode(self.rect, tessellation, self, self.planet)
         self.children.append(lnode)
-        self.kill_peers()
         self.type = "leaf"
-        self.generated = True
         
     def generate_split(self):
         if self.level >= MAX_LEVEL:
@@ -99,27 +106,20 @@ class Node:
         
         # Set some other properties
         self.type = "node"
-        self.kill_peers()
         
     def kill_peers(self):
-        try:
-            if self.tokill:
-                self.tokill.dispose()
-                del self.tokill
-                del self.parent.children[self.toassign]
-                self.parent.children.insert(self.toassign, self)
-            self.generated = True
-        except:
-            pass
+        if self.tokill:
+            id = self.tokill.id
+            del self.parent.children[self.tokill]
+            self.planet.children[id] = self
+        self.generated = True
         
     def draw(self):
-        if len(self._children) > 0:
-            for child in self._children:
-                child.draw()
-        else:
-            for child in self.children:
-                child.draw()
-            
+        for child in self._children:
+            child.draw()
+        for child in self.children:
+            child.draw()
+        
     def all_children_generated(self):
         for child in self.children:
             if not child.generated:
@@ -129,18 +129,17 @@ class Node:
     def update(self):
         if len(self.position) == 0:
             return
-        if self.type == "node":
-            self.generated = self.all_children_generated()
-            if self.generated:
-                self.remove_old_children()
+        self.generated = self.all_children_generated()
+        if self.generated:
+            self.remove_old_children()
         # Calculate the distance between the player and the center of the quad
         distance = math.dist(self.planet.campos, self.position)
         
         # If the player is close enough to the quad, split it
         if self.level > MIN_LEVEL_MLT:
-            mlt = abs(MIN_DISTANCE_MULTIPLIER + self.level / MIN_DISTANCE_MULTIPLIER * 2)
+            mlt = abs(MIN_DISTANCE_MULTIPLIER + self.level / MIN_DISTANCE_MULTIPLIER * 2) / 2
         else:
-            mlt = MIN_DISTANCE_MULTIPLIER        
+            mlt = MIN_DISTANCE_MULTIPLIER     
         if distance < self.size * mlt:
             if len(self.children) == 1 and self.level < MAX_LEVEL:
                 self.parent.split_queue.append(self)
@@ -164,8 +163,9 @@ class Node:
                 level = tounify.level
                 try:
                     tounify_index = self.children.index(tounify)
-                    tree = Node(rect, level, parent, planet=planet, tokill=tounify, toassign = tounify_index)
+                    tree = Node(rect, level, parent, planet=planet, tokill=tounify)
                     tree.generate_unified()
+                    self.children[tounify_index] = tree
                 except ValueError:
                     pass
         
