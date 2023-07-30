@@ -122,7 +122,11 @@ class Planet:
             for i in range(MAX_UPDATES_PER_FRAME):
                 if len(self.to_update) > 0:
                     _ = self.to_update.pop(0)
-                    self.children[_].update()
+                    try: self.children[_].update()
+                    except KeyError: continue
+        
+        if len(self.call_queue) > 0:
+            self.call_queue.pop(0)()
         
         for i in range(PROCESSES_PER_FRAME):        
             # Process the split queue
