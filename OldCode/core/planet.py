@@ -106,31 +106,26 @@ class Planet:
         self.rotation_details["current"][0] += self.rotation_details["speed"][0]
         self.rotation_details["current"][1] += self.rotation_details["speed"][1]
         self.rotation_details["current"][2] += self.rotation_details["speed"][2]
-        if self.check_overtime(t): return
-        # Update the chunks
+        keys = list(self.children.keys())
+        for i in range(len(keys)):
+            try: 
+                self.children[keys[i]].update()
+            except KeyError: pass
+        for i in range(len(self.generation_queue)):
+            if len(self.generation_queue) == 0:
+                break
+            _ = self.generation_queue.pop(-1)
+            _.generate_unified()
+                
         if self.last_update_stage <= 1:
-            if len(self.to_update) == 0:
-                self.to_update = list(self.children.keys())
-            else:
-                try:
-                    for i in range(PROCESSES_PER_FRAME):
-                        try: 
-                            if len(self.to_update) > 0: self.children[self.to_update.pop(-1)].update()
-                        except KeyError: pass
-                except RuntimeError:
-                    pass
-            self.last_update_stage = 2
-            if self.check_overtime(t): return
-            
-        if self.last_update_stage <= 2:
             for i in range(len(self.call_queue)):
                 if len(self.call_queue) > 0:
                     self.call_queue.pop(0)()
                 self.last_update_stage = 2
                 if self.check_overtime(t): return
-            self.last_update_stage = 3
+            self.last_update_stage = 2
         
-        if self.last_update_stage <= 3:
+        if self.last_update_stage <= 2:
             for i in range(len(self.split_queue) + len(self.unify_queue)):
                 # Process the split queue
                 tosplit = self.split_queue.pop(0) if len(self.split_queue) > 0 else None
@@ -155,18 +150,9 @@ class Planet:
                         self.chunks[tounify_index] = tounify
                     else:
                         pass
-                self.last_update_stage = 3
+                self.last_update_stage = 2
                 if self.check_overtime(t): return
-            self.last_update_stage = 4
-        
-        if self.last_update_stage <= 4:
             self.last_update_stage = 1
-            for i in range(len(self.generation_queue)):
-                if len(self.generation_queue) == 0:
-                    return
-                _ = self.generation_queue.pop(-1)
-                _.generate_unified()
-                if self.check_overtime(t): return
         
     def findchunk(self, id):
         for chunk in self.chunks.keys():
