@@ -1,6 +1,7 @@
 import glfw
 from OpenGL.GLUT import glutInit
 from core.window import Window
+from core.game import Game
 
 def initialize():
     """
@@ -24,5 +25,5 @@ if __name__ == "__main__":
     # Initialize GLFW and GLUT and create the window
     initialize()
     window = create_window()
-    # <create game stuff here>
+    game = Game(window)
     window.mainloop()
