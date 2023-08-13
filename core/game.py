@@ -96,7 +96,6 @@ class Game(object):
         try:
             while not self.namespace.killed:
                 if not self.namespace.result_queue.empty():
-                    # print(self.namespace.result_queue.get())
                     pass
         except:
             pass
