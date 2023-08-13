@@ -15,7 +15,11 @@ class Game(object):
         self.namespace.result_queue = self.manager.Queue()
         self.namespace.killed = False
         for i in range(multiprocessing.cpu_count()):
-            self.processes.append(multiprocessing.Process(target=self.process, args=(self.namespace,)))
+            self.processes.append(multiprocessing.Process(
+                target=self.process, 
+                args=(self.namespace), 
+                name=f"LostHorizons Worker Process {i}"
+            ))
             self.processes[i].start()
         # self.addToQueue({ # Test/Example
         #     "object": "qwertyuiop asdfghjkl zxcvbnm",
