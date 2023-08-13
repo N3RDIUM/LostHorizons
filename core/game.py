@@ -7,17 +7,29 @@ class Game(object):
         This is the main game class.
         """
         self.window = window
-        self.window.schedule_mainloop(self)
-        self.window.schedule_shared_context(self)
         
         self.processes = []
         self.manager = multiprocessing.Manager()
         self.namespace = self.manager.Namespace()
         self.namespace.queue = self.manager.Queue()
-        self.namespace.queue.put("Hello world!")
-        for i in range(multiprocessing.cpu_count() + 1):
+        self.namespace.result_queue = self.manager.Queue()
+        self.namespace.killed = False
+        for i in range(multiprocessing.cpu_count()):
             self.processes.append(multiprocessing.Process(target=self.process, args=(self.namespace,)))
             self.processes[i].start()
+        self.addToQueue({
+            "object": "aSdFgHjKl",
+            "function": "lower"
+        })
+        
+        self.window.schedule_mainloop(self)
+        self.window.schedule_shared_context(self)
+            
+    def addToQueue(self, item):
+        """
+        Add an item to the queue.
+        """
+        self.namespace.queue.put(item)
         
     def drawcall(self):
         """
@@ -29,14 +41,26 @@ class Game(object):
         """
         Shared context.
         """
-        pass
+        try:
+            while not self.namespace.killed:
+                if not self.namespace.result_queue.empty():
+                    print(self.namespace.result_queue.get())
+        except:
+            pass
     
     @staticmethod
     def process(namespace):
         """
         This function is called to start a multiprocessing process.
         """
+        import glfw
+        glfw.init()
+        
         # Get all items from the queue
         queue = namespace.queue
-        while not queue.empty():
-            print(queue.get())
+        while not namespace.killed:
+            if not queue.empty():
+                item = queue.get()
+                function = item["object"].__getattribute__(item["function"])
+                result = function()
+                namespace.result_queue.put(result)
