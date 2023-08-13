@@ -17,10 +17,10 @@ class Game(object):
         for i in range(multiprocessing.cpu_count()):
             self.processes.append(multiprocessing.Process(target=self.process, args=(self.namespace,)))
             self.processes[i].start()
-        self.addToQueue({
-            "object": "aSdFgHjKl",
-            "function": "lower"
-        })
+        # self.addToQueue({ # Test/Example
+        #     "object": "qwertyuiop asdfghjkl zxcvbnm",
+        #     "function": "upper",
+        # })
         
         self.window.schedule_mainloop(self)
         self.window.schedule_shared_context(self)
@@ -30,23 +30,6 @@ class Game(object):
         Add an item to the queue.
         """
         self.namespace.queue.put(item)
-        
-    def drawcall(self):
-        """
-        Draw call.
-        """
-        pass
-
-    def sharedcon(self):
-        """
-        Shared context.
-        """
-        try:
-            while not self.namespace.killed:
-                if not self.namespace.result_queue.empty():
-                    print(self.namespace.result_queue.get())
-        except:
-            pass
     
     @staticmethod
     def process(namespace):
@@ -64,3 +47,32 @@ class Game(object):
                 function = item["object"].__getattribute__(item["function"])
                 result = function()
                 namespace.result_queue.put(result)
+        
+        if namespace.killed:
+            glfw.terminate()
+                
+    def terminate(self):
+        """
+        Terminate all processes.
+        """
+        self.namespace.killed = True
+        for process in self.processes:
+            process.terminate()
+                
+    def drawcall(self):
+        """
+        Draw call.
+        """
+        pass
+
+    def sharedcon(self):
+        """
+        Shared context.
+        """
+        try:
+            while not self.namespace.killed:
+                if not self.namespace.result_queue.empty():
+                    # print(self.namespace.result_queue.get())
+                    pass
+        except:
+            pass

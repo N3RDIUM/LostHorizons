@@ -27,3 +27,7 @@ if __name__ == "__main__":
     window = create_window()
     game = Game(window)
     window.mainloop()
+    # After the player closes the window, terminate GLFW and exit the program
+    glfw.terminate()
+    game.terminate()
+    exit()
