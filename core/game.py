@@ -20,7 +20,8 @@ class Game(object):
         self.namespace.result_queue = self.manager.Queue()
         self.namespace.storages = self.renderer.storages
         self.namespace.killed = False
-        for i in range(multiprocessing.cpu_count()):
+        self.process_count = 1
+        for i in range(self.process_count):
             self.processes.append(
                 multiprocessing.Process(target=self.process, args=(self.namespace,)))
             self.processes[i].start()
@@ -72,7 +73,9 @@ class Game(object):
             colors = []
             for i in range(len(data)):
                 colors.append([1, 1, 1])
-            print(len(data), len(colors))
+            namespace.storages['default'].vertices = data
+            namespace.storages['default'].colors = colors
+            namespace.storages['default'].changed = True
                 
     def terminate(self):
         """
@@ -88,14 +91,11 @@ class Game(object):
         """
         self.player.update(self.window.window)
         self.renderer.draw()
+        # print(self.namespace.storages['default'].vertices)
 
     def sharedcon(self):
         """
         Shared context.
         """
-        try:
-            while not self.namespace.killed:
-                if not self.namespace.result_queue.empty():
-                    pass
-        except:
-            pass
+        while not self.namespace.killed:
+            self.renderer.update()

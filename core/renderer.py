@@ -36,7 +36,6 @@ class Renderer(object):
         super().__init__()
         self.manager = multiprocessing.Manager()
         self.storages = self.manager.dict()
-        self._storages = {}
         self.buffers = {}
         
         self.create_storage("default")
@@ -46,17 +45,15 @@ class Renderer(object):
         Add a pre-existing storage to the renderer.
         """
         self.storages.update({storage.uuid: storage})
-        self._storages.update({storage.uuid: storage})
         self.handle_new_storage(storage)
         
     def create_storage(self, id):
         """
         Create a new storage.
         """
-        storage = BufferDataStorage()
+        storage = BufferDataStorage(self.manager)
         storage.uuid = id
         self.storages.update({id: storage})
-        self._storages.update({id: storage})
         self.handle_new_storage(storage)
         return storage
     
@@ -72,12 +69,13 @@ class Renderer(object):
             "colors": Buffer(f"{str(storage.uuid)}-colors")
         }
     
-    def update_storage(self, storage):
+    def update_storage(self, id):
         """
         If the storage has changed, update it.
         TODO: Only update the parts of the storage that have changed.
         """
-        id = str(storage.uuid)
+        id = id
+        storage = self.storages[id]
         if storage.vertices != storage.previous_vertices:
             self.buffers[id]["vertices"].update(storage.vertices)
             storage.previous_vertices = storage.vertices
@@ -95,8 +93,10 @@ class Renderer(object):
         """
         Update the buffers.
         """
-        for storage in self.namespace.storages:
-            self.update_storage(storage)
+        for storage in self.storages:
+            if self.storages[storage].changed:
+                self.update_storage(storage)
+                self.storages[storage].changed = False
         
     def draw_storage(self, id):
         """
@@ -116,7 +116,7 @@ class Renderer(object):
         """
         Draw all the storages.
         """
-        for storage in self._storages:
+        for storage in self.storages:
             self.draw_storage(storage)
             
     def delete_storage(self, id):
@@ -126,4 +126,4 @@ class Renderer(object):
         for buffer_type in self.buffers[id]:
             self.buffers[id][buffer_type].delete()
         del self.buffers[id]
-        del self.namespace.storages[id]
+        del self.storages[id]
