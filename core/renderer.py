@@ -64,10 +64,7 @@ class Renderer(object):
         This will create the desired buffers for the specified storage.
         """
         self.buffers[str(storage.uuid)] = {
-            "vertices": Buffer(f"{str(storage.uuid)}-vertices"),
-            "indices": Buffer(f"{str(storage.uuid)}-indices"),
-            "normals": Buffer(f"{str(storage.uuid)}-normals"),
-            "colors": Buffer(f"{str(storage.uuid)}-colors")
+            "vertices": Buffer(f"{str(storage.uuid)}-vertices")
         }
     
     def update_storage(self, id):
@@ -79,12 +76,6 @@ class Renderer(object):
         storage = self.storages[id]
         self.buffers[id]["vertices"].modify(storage.vertices)
         storage.previous_vertices = storage.vertices
-        self.buffers[id]["indices"].modify(storage.indices)
-        storage.previous_indices = storage.indices
-        self.buffers[id]["normals"].modify(storage.normals)
-        storage.previous_normals = storage.normals
-        self.buffers[id]["colors"].modify(storage.colors)
-        storage.previous_colors = storage.colors
             
     def update(self):
         """
@@ -98,13 +89,10 @@ class Renderer(object):
         Draw the specified storage.
         """
         glColor3f(1, 1, 1)
-        self.buffers[id]["colors"].bind()
-        glColorPointer(3, GL_FLOAT, 0, None)
         self.buffers[id]["vertices"].bind()
         glVertexPointer(3, GL_FLOAT, 0, None)
         glDrawArrays(GL_POINTS, 0, len(self.storages[id].vertices))
         self.buffers[id]["vertices"].unbind()
-        self.buffers[id]["colors"].unbind()
         
     def draw(self):
         """
