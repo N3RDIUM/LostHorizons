@@ -20,36 +20,36 @@ class Buffer:
         """
         self.id = id
         data = np.empty(VBO_SIZE, dtype=np.float32)
-        self.vbo = vbo.VBO(data, usage='GL_DYNAMIC_DRAW_ARB', target='GL_ARRAY_BUFFER')
-        self.vbo.bind()
-        self.vbo.unbind()
+        self.buffer = vbo.VBO(data, usage='GL_DYNAMIC_DRAW_ARB', target='GL_ARRAY_BUFFER')
+        self.buffer.bind()
+        self.buffer.unbind()
         
     def modify(self, data):
         """
         Modify the buffer data.
         """
         data = np.asarray(data, dtype=np.float32)
-        self.vbo.bind()
-        self.vbo.set_array(data, data.nbytes)
-        self.vbo.unbind()
+        self.buffer.bind()
+        self.buffer.set_array(data, data.nbytes)
+        self.buffer.unbind()
         
     def bind(self):
         """
         Bind the buffer.
         """
-        self.vbo.bind()
+        self.buffer.bind()
     
     def unbind(self):
         """
         Unbind the buffer.
         """
-        self.vbo.unbind()
+        self.buffer.unbind()
         
     def delete(self):
         """
         Delete the buffer.
         """
-        self.vbo.delete()
+        self.buffer.delete()
         
     def __del__(self):
         """
