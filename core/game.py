@@ -69,15 +69,19 @@ class Game(object):
         if item["task"] == "test":
             # Add a grid of points to the renderer
             data = []
-            for x in range(-10, 10):
-                for y in range(-10, 10):
+            a = 100
+            for x in range(-a, a):
+                for y in range(-a, a):
                     _ =[
-                        y,
-                        x,
-                        -1
+                        y / a,
+                        random.random() * a / 100 - 1,
+                        x / a,
                     ]
                     data.extend(_)
             namespace.storages['default'].vertices.extend(data)
+            namespace.storages['default'].colors.extend([
+                1, 0, 0
+            ] * len(data))
                 
     def terminate(self):
         """

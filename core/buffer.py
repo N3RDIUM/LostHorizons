@@ -5,7 +5,7 @@ import random
 import numpy as np
 from OpenGL.GL import *
 
-VBO_SIZE = 1000000
+VBO_SIZE = 100000000
 
 class Buffer:
     """
@@ -25,7 +25,7 @@ class Buffer:
 
         # Allocate storage for the buffer using glBufferStorage and specify the desired storage flags
         glBufferStorage(GL_ARRAY_BUFFER, VBO_SIZE, None,
-                        GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT)
+                        GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT)
         
         self.map_buffer()
         self.unmap_buffer()
