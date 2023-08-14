@@ -5,7 +5,7 @@ import time
 import glfw
 from OpenGL.GL import (GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_MODELVIEW,
                        GL_PROJECTION, glClear, glLoadIdentity, glMatrixMode,
-                       glViewport)
+                       glViewport, glEnable, GL_DEPTH_TEST, GL_CULL_FACE, glClearColor)
 from OpenGL.GLU import gluPerspective
 
 from .logger import logging as logger
@@ -85,28 +85,6 @@ class Window:
         glfw.make_context_current(self.window)
         logger.info("[Window] Window + shared context initialized!")
 
-    def _setup_3d(self):
-        """
-        Set up the 3D view.
-        """
-        w, h = self.get_window_size()  # Get the window size.
-
-        glMatrixMode(GL_PROJECTION)  # Set the projection matrix.
-        glLoadIdentity()  # Load the identity matrix.
-        try:
-            gluPerspective(70, w / h, 0.1, 1000)  # Set the perspective.
-        except ZeroDivisionError:  # If the window size is 0,
-            pass  # Do nothing.
-        glMatrixMode(GL_MODELVIEW)  # Set the model view matrix.
-        glLoadIdentity()  # Load the identity matrix.
-
-    def _update_3d(self):
-        """
-        Update the 3D view.
-        """
-        self._setup_3d()  # Set up the 3D view.
-        glViewport(0, 0, *self.get_window_size())  # Set the viewport.
-
     def get_window_size(self):
         """
         Get the window size.
@@ -160,15 +138,19 @@ class Window:
         """
         Main loop.
         """
+        glEnable(GL_DEPTH_TEST)
+        glEnable(GL_CULL_FACE)
+        glfw.make_context_current(self.window)
         while not glfw.window_should_close(self.window):  # Main loop.
             self.current_frame = time.time()
             # OpenGL stuff.
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-            self._update_3d()
+            glClearColor(0.0, 0.0, 0.0, 1.0)
+            self.setup_3d()
 
             for obj in self._scheduled_main:  # Loop through the scheduled objects.
                 obj.drawcall()  # Draw the object.
-                
+            
             self.fps = 1 / (self.current_frame - self.previous_frame)
             self.smooth_fps_samples.append(self.fps)
             self.smooth_fps = sum(self.smooth_fps_samples) / len(self.smooth_fps_samples)
@@ -179,3 +161,15 @@ class Window:
             glfw.poll_events()
             glfw.swap_buffers(self.window)
             self.previous_frame = self.current_frame
+            
+    def setup_3d(self):
+        """
+        Setup 3D.
+        """
+        width, height = self.get_window_size()
+        glViewport(0, 0, width, height)
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        gluPerspective(45, width / height, 0.0001, 100000000)
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()

@@ -18,4 +18,3 @@ class BufferDataStorage(object):
         self.previous_colors = manager.list()
         
         self.uuid = uuid4()
-        self.changed = False

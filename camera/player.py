@@ -8,7 +8,7 @@ class Player(object):
         self.rotation = rotation
         self.planet = planet
         self.mouse_prev = glfw.get_cursor_pos(glfw.get_current_context())
-        self.speed_mlt = 6400
+        self.speed_mlt = 1
         self.speed = self.speed_mlt
     
     def update(self, window):

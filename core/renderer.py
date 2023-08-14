@@ -3,7 +3,7 @@ import multiprocessing
 from OpenGL.GL import (
     glEnable,
     glEnableClientState,
-    glDrawElements,
+    glDrawArrays,
     glNormalPointer,
     glVertexPointer,
     glColorPointer,
@@ -15,9 +15,10 @@ from OpenGL.GL import (
     GL_NORMAL_ARRAY,
     GL_COLOR_ARRAY,
     GL_FLOAT,
-    GL_TRIANGLES,
-    GL_UNSIGNED_INT,
+    GL_TRIANGLES
 )
+
+from OpenGL.GL import *
 
 from core.buffer import Buffer
 from core.bufferdata import BufferDataStorage
@@ -76,41 +77,34 @@ class Renderer(object):
         """
         id = id
         storage = self.storages[id]
-        if storage.vertices != storage.previous_vertices:
-            self.buffers[id]["vertices"].update(storage.vertices)
-            storage.previous_vertices = storage.vertices
-        if storage.indices != storage.previous_indices:
-            self.buffers[id]["indices"].update(storage.indices)
-            storage.previous_indices = storage.indices
-        if storage.normals != storage.previous_normals:
-            self.buffers[id]["normals"].update(storage.normals)
-            storage.previous_normals = storage.normals
-        if storage.colors != storage.previous_colors:
-            self.buffers[id]["colors"].update(storage.colors)
-            storage.previous_colors = storage.colors
+        self.buffers[id]["vertices"].modify(storage.vertices)
+        storage.previous_vertices = storage.vertices
+        self.buffers[id]["indices"].modify(storage.indices)
+        storage.previous_indices = storage.indices
+        self.buffers[id]["normals"].modify(storage.normals)
+        storage.previous_normals = storage.normals
+        self.buffers[id]["colors"].modify(storage.colors)
+        storage.previous_colors = storage.colors
             
     def update(self):
         """
         Update the buffers.
         """
         for storage in self.storages:
-            if self.storages[storage].changed:
-                self.update_storage(storage)
-                self.storages[storage].changed = False
+            self.update_storage(storage)
         
     def draw_storage(self, id):
         """
         Draw the specified storage.
         """
-        # self.buffers[id]["vertices"].bind()
-        # glVertexPointer(3, GL_FLOAT, 0, None)
-        # self.buffers[id]["normals"].bind()
-        # glNormalPointer(GL_FLOAT, 0, None)
-        # self.buffers[id]["colors"].bind()
-        # glColorPointer(3, GL_FLOAT, 0, None)
-        
-        # self.buffers[id]["indices"].bind()
-        # glDrawElements(GL_TRIANGLES, len(self.buffers[id]["indices"].data), GL_UNSIGNED_INT, None)
+        glColor3f(1, 1, 1)
+        self.buffers[id]["colors"].bind()
+        glColorPointer(3, GL_FLOAT, 0, None)
+        self.buffers[id]["vertices"].bind()
+        glVertexPointer(3, GL_FLOAT, 0, None)
+        glDrawArrays(GL_POINTS, 0, len(self.storages[id].vertices))
+        self.buffers[id]["vertices"].unbind()
+        self.buffers[id]["colors"].unbind()
         
     def draw(self):
         """

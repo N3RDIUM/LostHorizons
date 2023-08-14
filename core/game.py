@@ -3,6 +3,8 @@ import multiprocessing
 from core.renderer import Renderer
 from camera.player import Player
 
+import random
+
 class Game(object):
     def __init__(self, window):
         """
@@ -68,14 +70,14 @@ class Game(object):
             # Add a grid of points to the renderer
             data = []
             for x in range(-10, 10):
-                for z in range(-10, 10):
-                    data.append([x, 0, z])
-            colors = []
-            for i in range(len(data)):
-                colors.append([1, 1, 1])
-            namespace.storages['default'].vertices = data
-            namespace.storages['default'].colors = colors
-            namespace.storages['default'].changed = True
+                for y in range(-10, 10):
+                    _ =[
+                        y,
+                        x,
+                        -1
+                    ]
+                    data.extend(_)
+            namespace.storages['default'].vertices.extend(data)
                 
     def terminate(self):
         """
@@ -91,7 +93,6 @@ class Game(object):
         """
         self.player.update(self.window.window)
         self.renderer.draw()
-        # print(self.namespace.storages['default'].vertices)
 
     def sharedcon(self):
         """
