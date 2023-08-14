@@ -25,8 +25,6 @@ from core.bufferdata import BufferDataStorage
 
 glEnable(GL_ARRAY_BUFFER)
 glEnableClientState(GL_VERTEX_ARRAY)
-glEnableClientState(GL_NORMAL_ARRAY)
-glEnableClientState(GL_COLOR_ARRAY)
 
 class Renderer(object):
     def __init__(self):
@@ -40,6 +38,8 @@ class Renderer(object):
         self.buffers = {}
         
         self.create_storage("default")
+        
+        glEnableClientState(GL_VERTEX_ARRAY)
         
     def add_storage(self, storage):
         """

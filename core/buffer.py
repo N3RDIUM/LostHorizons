@@ -1,10 +1,11 @@
 # imports
 import ctypes
+import random
+
 import numpy as np
-from OpenGL.arrays import vbo
 from OpenGL.GL import *
 
-VBO_SIZE = 120000
+VBO_SIZE = 1000000
 
 class Buffer:
     """
@@ -19,40 +20,65 @@ class Buffer:
         Initializes the buffer.
         """
         self.id = id
-        data = np.empty(VBO_SIZE, dtype=np.float32)
-        self.buffer = vbo.VBO(data, usage='GL_DYNAMIC_DRAW_ARB', target='GL_ARRAY_BUFFER')
-        self.buffer.bind()
-        self.buffer.unbind()
+        self.buf = glGenBuffers(1)
+        glBindBuffer(GL_ARRAY_BUFFER, self.buf)
+
+        # Allocate storage for the buffer using glBufferStorage and specify the desired storage flags
+        glBufferStorage(GL_ARRAY_BUFFER, VBO_SIZE, None,
+                        GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT)
         
-    def modify(self, data):
+        self.map_buffer()
+        self.unmap_buffer()
+
+    def map_buffer(self):
         """
-        Modify the buffer data.
+        Maps the buffer to memory.
         """
-        data = np.asarray(data, dtype=np.float32)
-        self.buffer.bind()
-        self.buffer.set_array(data, data.nbytes)
-        self.buffer.unbind()
-        
+        # Bind the buffer
+        glBindBuffer(GL_ARRAY_BUFFER, self.buf)
+
+        # Map the buffer to memory using glMapBufferRange
+        ptr = glMapBufferRange(GL_ARRAY_BUFFER, 0, VBO_SIZE,
+                               GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT)
+
+        # Create a pointer to the data buffer object
+        self.data_ptr = ctypes.cast(ptr, ctypes.POINTER(GLfloat * VBO_SIZE))
+
+    def unmap_buffer(self):
+        """
+        Unmaps the buffer.
+        """
+        # Unmap the buffer
+        glUnmapBuffer(GL_ARRAY_BUFFER)
+
+        # Unbind the buffer
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+    def modify(self, data, offset=0):
+        """
+        Adds data to the buffer.
+
+        :param data: The data to add to the buffer.
+        :param offset: The offset to start writing at.
+        """
+        # Modify the buffer
+        self.data_ptr.contents[offset:offset + len(data)] = data
+        glFlush()
+    
     def bind(self):
         """
-        Bind the buffer.
+        Binds the buffer.
         """
-        self.buffer.bind()
-    
+        glBindBuffer(GL_ARRAY_BUFFER, self.buf)
+        
     def unbind(self):
         """
-        Unbind the buffer.
+        Unbinds the buffer.
         """
-        self.buffer.unbind()
-        
-    def delete(self):
-        """
-        Delete the buffer.
-        """
-        self.buffer.delete()
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
         
     def __del__(self):
         """
-        Delete the buffer.
+        Deletes the buffer.
         """
-        self.delete()
+        glDeleteBuffers(1, [self.buf])
