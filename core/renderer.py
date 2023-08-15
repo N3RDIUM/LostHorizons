@@ -111,7 +111,7 @@ class Renderer(object):
         
         glPointSize(2)
         glEnable(GL_POINT_SMOOTH)
-        glDrawArrays(GL_POINTS, 0, len(self.storages[id].vertices) // 3)
+        glDrawArrays(GL_TRIANGLES, 0, len(self.storages[id].vertices) // 3)
                 
         # Clean up
         vbo_vertices.unbind()

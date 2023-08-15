@@ -73,19 +73,26 @@ class Game(object):
             _v = []
             _c = []
             for x in range(-a, a):
-                for y in range(-a, a):
+                for z in range(-a, a):
+                    h = -0.4
                     _v.extend([
-                        y / a,
-                        noise.pnoise2(x / 100, y / 100) * 4,
-                        x / a,
+                        # For GL_TRIANGLES
+                        x / a, h, z / a,
+                        x / a, h, (z + 1) / a,
+                        (x + 1) / a, h, z / a,
+                        (x + 1) / a, h, z / a,
+                        x / a, h, (z + 1) / a,
+                        (x + 1) / a, h, (z + 1) / a,
                     ])
                     _c.extend([
-                        abs(noise.pnoise2(x / 10 + 8, y / 10 + 8) / 2 + 0.5), 
-                        abs(noise.pnoise2(x / 10 + 16, y / 10 + 16) / 2 + 0.5), 
-                        abs(noise.pnoise2(x / 10 + 32, y / 10 + 32) / 2 + 0.5)
-                    ])
-            namespace.storages['default'].vertices.extend(_v)
-            namespace.storages['default'].colors.extend(_c)
+                        abs(noise.pnoise2(x / 10 + 8, z / 10 + 8) / 2 + 0.5), 
+                        abs(noise.pnoise2(x / 10 + 16, z / 10 + 16) / 2 + 0.5), 
+                        abs(noise.pnoise2(x / 10 + 32, z / 10 + 32) / 2 + 0.5),
+                    ] * 6)
+                namespace.storages['default'].vertices.extend(_v)
+                namespace.storages['default'].colors.extend(_c)
+                _v = []
+                _c = []
                 
     def terminate(self):
         """
