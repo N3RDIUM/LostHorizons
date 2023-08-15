@@ -80,7 +80,7 @@ class Game(object):
                     data.extend(_)
             namespace.storages['default'].vertices.extend(data)
             namespace.storages['default'].colors.extend([
-                1, 0, 0
+                0, 1, 0, 1
             ] * len(data))
                 
     def terminate(self):

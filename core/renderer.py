@@ -96,11 +96,15 @@ class Renderer(object):
         """
         Draw the specified storage.
         """
+        glClear(GL_COLOR_BUFFER_BIT)
         self.buffers[id]["vertices"].bind()
         glVertexPointer(3, GL_FLOAT, 0, None)
         self.buffers[id]["colors"].bind()
-        glColorPointer(3, GL_FLOAT, 0, None)
-        glDrawArrays(GL_POINTS, 0, len(self.storages[id].vertices))
+        glColorPointer(4, GL_BYTE, 0, self.buffers[id]["colors"].buf)
+        glPointSize(2)
+        glEnable(GL_POINT_SMOOTH)
+        glDrawArrays(GL_POINTS, 0, len(self.storages[id].vertices) // 3)
+        glDisable(GL_POINT_SMOOTH)
         self.buffers[id]["vertices"].unbind()
         self.buffers[id]["colors"].unbind()
         
