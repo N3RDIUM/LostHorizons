@@ -4,6 +4,7 @@ from core.renderer import Renderer
 from camera.player import Player
 
 import random
+import noise
 
 class Game(object):
     def __init__(self, window):
@@ -68,20 +69,23 @@ class Game(object):
         """
         if item["task"] == "test":
             # Add a grid of points to the renderer
-            data = []
-            a = 100
+            a = 32
+            _v = []
+            _c = []
             for x in range(-a, a):
                 for y in range(-a, a):
-                    _ =[
+                    _v.extend([
                         y / a,
-                        random.random() * a / 100 - 1,
+                        noise.pnoise2(x / 100, y / 100) * 4,
                         x / a,
-                    ]
-                    data.extend(_)
-            namespace.storages['default'].vertices.extend(data)
-            namespace.storages['default'].colors.extend([
-                0, 1, 0, 1
-            ] * len(data))
+                    ])
+                    _c.extend([
+                        1, 
+                        abs(noise.pnoise2(x / 10, y / 10) / 2 + 0.5), 
+                        1
+                    ])
+            namespace.storages['default'].vertices.extend(_v)
+            namespace.storages['default'].colors.extend(_c)
                 
     def terminate(self):
         """

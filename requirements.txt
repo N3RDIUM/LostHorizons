@@ -2,3 +2,4 @@ PyOpenGL
 PyOpenGL-Accelerate
 glfw
 numpy
+noise

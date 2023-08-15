@@ -4,7 +4,6 @@ from OpenGL.GL import (
     glEnable,
     glEnableClientState,
     glDrawArrays,
-    glNormalPointer,
     glVertexPointer,
     glColorPointer,
 )
@@ -12,10 +11,8 @@ from OpenGL.GL import (
 from OpenGL.GL import (
     GL_ARRAY_BUFFER,
     GL_VERTEX_ARRAY,
-    GL_NORMAL_ARRAY,
     GL_COLOR_ARRAY,
     GL_FLOAT,
-    GL_TRIANGLES
 )
 
 from OpenGL.GL import *
@@ -97,17 +94,32 @@ class Renderer(object):
         Draw the specified storage.
         """
         glClear(GL_COLOR_BUFFER_BIT)
-        self.buffers[id]["vertices"].bind()
-        glVertexPointer(3, GL_FLOAT, 0, None)
-        self.buffers[id]["colors"].bind()
-        glColorPointer(4, GL_BYTE, 0, self.buffers[id]["colors"].buf)
+    
+        vbo_vertices = self.buffers[id]["vertices"].buf
+        vbo_colors = self.buffers[id]["colors"].buf
+        
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glEnableClientState(GL_COLOR_ARRAY)
+        
+        # Bind and enable vertex VBO
+        vbo_vertices.bind()
+        glVertexPointer(3, GL_FLOAT, 0, vbo_vertices)
+        
+        # Bind and enable color VBO
+        vbo_colors.bind()
+        glColorPointer(3, GL_FLOAT, 0, vbo_colors)
+        
         glPointSize(2)
         glEnable(GL_POINT_SMOOTH)
         glDrawArrays(GL_POINTS, 0, len(self.storages[id].vertices) // 3)
-        glDisable(GL_POINT_SMOOTH)
-        self.buffers[id]["vertices"].unbind()
-        self.buffers[id]["colors"].unbind()
+                
+        # Clean up
+        vbo_vertices.unbind()
+        vbo_colors.unbind()
         
+        glDisableClientState(GL_VERTEX_ARRAY)
+        glDisableClientState(GL_COLOR_ARRAY)
+            
     def draw(self):
         """
         Draw all the storages.
