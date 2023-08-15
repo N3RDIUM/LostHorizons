@@ -80,9 +80,9 @@ class Game(object):
                         x / a,
                     ])
                     _c.extend([
-                        1, 
-                        abs(noise.pnoise2(x / 10, y / 10) / 2 + 0.5), 
-                        1
+                        abs(noise.pnoise2(x / 10 + 8, y / 10 + 8) / 2 + 0.5), 
+                        abs(noise.pnoise2(x / 10 + 16, y / 10 + 16) / 2 + 0.5), 
+                        abs(noise.pnoise2(x / 10 + 32, y / 10 + 32) / 2 + 0.5)
                     ])
             namespace.storages['default'].vertices.extend(_v)
             namespace.storages['default'].colors.extend(_c)
