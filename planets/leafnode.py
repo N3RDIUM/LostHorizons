@@ -29,10 +29,19 @@ class LeafNode(object):
         
         for i in range(len(self.game.processes)):
             self.game.addToQueue({
-                "task": "tesselate",
+                # Task type
+                "task": "generate_leafnode",
+                
+                # Details for mesh
                 "mesh": self.uuid,
+                
+                # Details for tesselation
                 "quad": self.quad,
                 "segments": 64,
                 "denominator": len(self.game.processes),
                 "numerator": i,
+                
+                # Details for spherification
+                "planet_center": self.planet.center,
+                "planet_radius": self.planet.radius,
             })

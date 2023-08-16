@@ -1,9 +1,12 @@
+import math
 import multiprocessing
 
 from core.renderer import Renderer
+from core.util import normalize
 from camera.player import Player
 from planets.tesselate import tesselate_partial
 from planets.leafnode import LeafNode
+from planets.planet import DummyPlanet
 
 import noise
 
@@ -29,7 +32,8 @@ class Game(object):
             self.processes.append(
                 multiprocessing.Process(target=self.process, args=(self.namespace,)))
             self.processes[i].start()
-            
+        
+        self.planet = DummyPlanet()
         self.lnode = LeafNode(
             quad=[
                 (-1, -1, -1),
@@ -39,7 +43,7 @@ class Game(object):
             ],
             segments=64,
             parent=None,
-            planet=None,
+            planet=self.planet,
             renderer=self.renderer,
             game=self
         )
@@ -77,18 +81,43 @@ class Game(object):
         """
         Handle a queue item.
         """
-        if item["task"] == "tesselate":
-            # Vertex calculations
+        if item["task"] == "generate_leafnode":
+            # Tesselate
             quad = tuple(item["quad"])
             segments = item["segments"]
             _new_verts = tesselate_partial(quad, segments, item["denominator"], item["numerator"])
             for i in range(len(_new_verts)):
                 _new_verts[i] = (
                     _new_verts[i][0] * segments,
-                    _new_verts[i][1] + noise.pnoise3(_new_verts[i][0], _new_verts[i][1], _new_verts[i][2]) * 10,
+                    item["planet_radius"] + item["planet_center"][1],
                     _new_verts[i][2] * segments,
                 )
-            verts_1d = [item for sublist in _new_verts for item in sublist]
+                
+            # Spherify
+            CENTER = item["planet_center"]
+            RADIUS = item["planet_radius"]
+            for i in range(len(_new_verts)):
+                v = _new_verts[i]
+                x = v[0] - CENTER[0]
+                y = v[1] - CENTER[1]
+                z = v[2] - CENTER[2]
+                
+                length = math.sqrt(x**2 + y**2 + z**2)
+                
+                x = x / length * RADIUS
+                y = y / length * RADIUS
+                z = z / length * RADIUS
+                
+                # Add noise
+                vector = [x, y, z]
+                vector = normalize(vector)
+                _noise = 1 # No noise for now
+                x = x + vector[0] * _noise
+                y = y + vector[1] * _noise
+                z = z + vector[2] * _noise
+                
+                _new_verts[i] = [x, y, z]
+            
             # Color calculations based on perlin noise in that area
             colors = []
             for i in range(len(_new_verts)):
@@ -100,6 +129,8 @@ class Game(object):
                     abs(noise.pnoise3(x / 10 + 16, y / 10 + 16, z / 10 + 16) / 4 * 3 + 0.25),
                     abs(noise.pnoise3(x / 10 + 32, y / 10 + 32, z / 10 + 32) / 4 * 3 + 0.25)
                 ))
+                
+            verts_1d = [item for sublist in _new_verts for item in sublist]
             namespace.storages[item['mesh']].vertices.extend(verts_1d)
             namespace.storages[item['mesh']].colors.extend(colors)
             
