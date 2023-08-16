@@ -3,8 +3,8 @@ import multiprocessing
 from core.renderer import Renderer
 from camera.player import Player
 from planets.tesselate import tesselate_partial
+from planets.leafnode import LeafNode
 
-import random
 import noise
 
 class Game(object):
@@ -30,20 +30,20 @@ class Game(object):
                 multiprocessing.Process(target=self.process, args=(self.namespace,)))
             self.processes[i].start()
             
-        for i in range(len(self.processes)):
-            self.addToQueue({
-                "task": "tesselate",
-                "mesh": "default",
-                "quad": [
-                    (-1, -1, -1),
-                    (1, -1, -1),
-                    (1, -1, 1),
-                    (-1, -1, 1)
-                ],
-                "segments": 100,
-                "denominator": len(self.processes),
-                "numerator": i
-            })
+        self.lnode = LeafNode(
+            quad=[
+                (-1, -1, -1),
+                (1, -1, -1),
+                (1, -1, 1),
+                (-1, -1, 1)
+            ],
+            segments=64,
+            parent=None,
+            planet=None,
+            renderer=self.renderer,
+            game=self
+        )
+        self.lnode.generate()
         
         self.window.schedule_mainloop(self)
         self.window.schedule_shared_context(self)
@@ -100,14 +100,16 @@ class Game(object):
                     abs(noise.pnoise3(x / 10 + 16, y / 10 + 16, z / 10 + 16) / 4 * 3 + 0.25),
                     abs(noise.pnoise3(x / 10 + 32, y / 10 + 32, z / 10 + 32) / 4 * 3 + 0.25)
                 ))
-            namespace.storages['default'].vertices.extend(verts_1d)
-            namespace.storages['default'].colors.extend(colors)
+            namespace.storages[item['mesh']].vertices.extend(verts_1d)
+            namespace.storages[item['mesh']].colors.extend(colors)
             
     def terminate(self):
         """
         Terminate all processes.
         """
         self.namespace.killed = True
+        for process in self.processes:
+            process.join()
         for process in self.processes:
             process.terminate()
                 

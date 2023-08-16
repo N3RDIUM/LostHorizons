@@ -65,8 +65,8 @@ class Renderer(object):
         local_storage = BufferDataStorage()
         local_storage.vertices = list(storage.vertices)
         local_storage.colors = list(storage.colors)
-        self.local_storages[str(storage.uuid)] = local_storage
-        self.buffers[str(storage.uuid)] = {
+        self.local_storages[storage.uuid] = local_storage
+        self.buffers[storage.uuid] = {
             "vertices": Buffer(f"{str(storage.uuid)}-vertices"),
             "colors": Buffer(f"{str(storage.uuid)}-colors")
         }
