@@ -88,9 +88,7 @@ class Game(object):
                     _new_verts[i][1] + noise.pnoise3(_new_verts[i][0], _new_verts[i][1], _new_verts[i][2]) * 10,
                     _new_verts[i][2] * segments,
                 )
-            new_verts = []
-            for vert in _new_verts:
-                new_verts.extend(vert)
+            verts_1d = [item for sublist in _new_verts for item in sublist]
             # Color calculations based on perlin noise in that area
             colors = []
             for i in range(len(_new_verts)):
@@ -102,7 +100,7 @@ class Game(object):
                     abs(noise.pnoise3(x / 10 + 16, y / 10 + 16, z / 10 + 16) / 4 * 3 + 0.25),
                     abs(noise.pnoise3(x / 10 + 32, y / 10 + 32, z / 10 + 32) / 4 * 3 + 0.25)
                 ))
-            namespace.storages['default'].vertices.extend(new_verts)
+            namespace.storages['default'].vertices.extend(verts_1d)
             namespace.storages['default'].colors.extend(colors)
             
     def terminate(self):
