@@ -2,6 +2,7 @@ import multiprocessing
 
 from core.renderer import Renderer
 from camera.player import Player
+from planets.tesselate import tesselate
 
 import random
 import noise
@@ -68,31 +69,37 @@ class Game(object):
         Handle a queue item.
         """
         if item["task"] == "test":
-            # Add a grid of points to the renderer
-            a = 32
-            _v = []
-            _c = []
-            for x in range(-a, a):
-                for z in range(-a, a):
-                    h = -0.4
-                    _v.extend([
-                        # For GL_TRIANGLES
-                        x / a, h, z / a,
-                        x / a, h, (z + 1) / a,
-                        (x + 1) / a, h, z / a,
-                        (x + 1) / a, h, z / a,
-                        x / a, h, (z + 1) / a,
-                        (x + 1) / a, h, (z + 1) / a,
-                    ])
-                    _c.extend([
-                        abs(noise.pnoise2(x / 10 + 8, z / 10 + 8) / 2 + 0.5), 
-                        abs(noise.pnoise2(x / 10 + 16, z / 10 + 16) / 2 + 0.5), 
-                        abs(noise.pnoise2(x / 10 + 32, z / 10 + 32) / 2 + 0.5),
-                    ] * 6)
-                namespace.storages['default'].vertices.extend(_v)
-                namespace.storages['default'].colors.extend(_c)
-                _v = []
-                _c = []
+            # Vertex calculations
+            quad = [
+                (-1, -1, -1),
+                (1, -1, -1),
+                (1, -1, 1),
+                (-1, -1, 1)
+            ]
+            segments = 100
+            _new_verts = tesselate(quad, segments)
+            for i in range(len(_new_verts)):
+                _new_verts[i] = (
+                    _new_verts[i][0] * segments,
+                    _new_verts[i][1] + noise.pnoise3(_new_verts[i][0], _new_verts[i][1], _new_verts[i][2]) * 10,
+                    _new_verts[i][2] * segments,
+                )
+            new_verts = []
+            for vert in _new_verts:
+                new_verts.extend(vert)
+            # Color calculations based on perlin noise in that area
+            colors = []
+            for i in range(len(_new_verts)):
+                x = _new_verts[i][0]
+                y = _new_verts[i][1]
+                z = _new_verts[i][2]
+                colors.extend((
+                    abs(noise.pnoise3(x / 10 + 8, y / 10 + 8, z / 10 + 8) / 4 * 3 + 0.25), 
+                    abs(noise.pnoise3(x / 10 + 16, y / 10 + 16, z / 10 + 16) / 4 * 3 + 0.25),
+                    abs(noise.pnoise3(x / 10 + 32, y / 10 + 32, z / 10 + 32) / 4 * 3 + 0.25)
+                ))
+            namespace.storages['default'].vertices.extend(new_verts)
+            namespace.storages['default'].colors.extend(colors)
                 
     def terminate(self):
         """

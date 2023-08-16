@@ -13,11 +13,6 @@ class LeafNode(object):
     ):
         """
         LeafNode
-        
-        This is a leaf node of a planet,
-        the thing you actually see.
-        TODO: The rendering part (vbo allocation, recycling) 
-        TODO: is handled by a 'LeafNodeManager' class
         """
         self.quad = quad
         self.segments = segments

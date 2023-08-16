@@ -109,9 +109,9 @@ class Renderer(object):
         vbo_colors.bind()
         glColorPointer(3, GL_FLOAT, 0, vbo_colors)
         
-        glPointSize(2)
+        glPointSize(8)
         glEnable(GL_POINT_SMOOTH)
-        glDrawArrays(GL_TRIANGLES, 0, len(self.storages[id].vertices) // 3)
+        glDrawArrays(GL_POINTS, 0, len(self.storages[id].vertices) // 3)
                 
         # Clean up
         vbo_vertices.unbind()
