@@ -2,7 +2,7 @@ import multiprocessing
 
 from core.renderer import Renderer
 from camera.player import Player
-from planets.tesselate import tesselate
+from planets.tesselate import tesselate_partial
 
 import random
 import noise
@@ -24,15 +24,26 @@ class Game(object):
         self.namespace.result_queue = self.manager.Queue()
         self.namespace.storages = self.renderer.storages
         self.namespace.killed = False
-        self.process_count = 1
+        self.process_count = multiprocessing.cpu_count()
         for i in range(self.process_count):
             self.processes.append(
                 multiprocessing.Process(target=self.process, args=(self.namespace,)))
             self.processes[i].start()
             
-        self.addToQueue({
-            "task": "test",
-        })
+        for i in range(len(self.processes)):
+            self.addToQueue({
+                "task": "tesselate",
+                "mesh": "default",
+                "quad": [
+                    (-1, -1, -1),
+                    (1, -1, -1),
+                    (1, -1, 1),
+                    (-1, -1, 1)
+                ],
+                "segments": 100,
+                "denominator": len(self.processes),
+                "numerator": i
+            })
         
         self.window.schedule_mainloop(self)
         self.window.schedule_shared_context(self)
@@ -48,11 +59,9 @@ class Game(object):
         """
         This function is called to start a multiprocessing process.
         """
-        import os
         import glfw
         glfw.init()
         
-        print("Process started: " + str(os.getpid()))
         # Get all items from the queue
         queue = namespace.queue
         while not namespace.killed:
@@ -68,16 +77,11 @@ class Game(object):
         """
         Handle a queue item.
         """
-        if item["task"] == "test":
+        if item["task"] == "tesselate":
             # Vertex calculations
-            quad = [
-                (-1, -1, -1),
-                (1, -1, -1),
-                (1, -1, 1),
-                (-1, -1, 1)
-            ]
-            segments = 100
-            _new_verts = tesselate(quad, segments)
+            quad = tuple(item["quad"])
+            segments = item["segments"]
+            _new_verts = tesselate_partial(quad, segments, item["denominator"], item["numerator"])
             for i in range(len(_new_verts)):
                 _new_verts[i] = (
                     _new_verts[i][0] * segments,
@@ -100,7 +104,7 @@ class Game(object):
                 ))
             namespace.storages['default'].vertices.extend(new_verts)
             namespace.storages['default'].colors.extend(colors)
-                
+            
     def terminate(self):
         """
         Terminate all processes.

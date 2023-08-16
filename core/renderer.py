@@ -18,7 +18,7 @@ from OpenGL.GL import (
 from OpenGL.GL import *
 
 from core.buffer import Buffer
-from core.bufferdata import BufferDataStorage
+from core.bufferdata import BufferDataStorage, SharableBufferDataStorage
 
 glEnable(GL_ARRAY_BUFFER)
 glEnableClientState(GL_VERTEX_ARRAY)
@@ -33,6 +33,7 @@ class Renderer(object):
         super().__init__()
         self.manager = multiprocessing.Manager()
         self.storages = self.manager.dict()
+        self.local_storages = {}
         self.buffers = {}
         
         self.create_storage("default")
@@ -50,7 +51,7 @@ class Renderer(object):
         """
         Create a new storage.
         """
-        storage = BufferDataStorage(self.manager)
+        storage = SharableBufferDataStorage(self.manager)
         storage.uuid = id
         self.storages.update({id: storage})
         self.handle_new_storage(storage)
@@ -61,6 +62,10 @@ class Renderer(object):
         Handle a new storage.
         This will create the desired buffers for the specified storage.
         """
+        local_storage = BufferDataStorage()
+        local_storage.vertices = list(storage.vertices)
+        local_storage.colors = list(storage.colors)
+        self.local_storages[str(storage.uuid)] = local_storage
         self.buffers[str(storage.uuid)] = {
             "vertices": Buffer(f"{str(storage.uuid)}-vertices"),
             "colors": Buffer(f"{str(storage.uuid)}-colors")
@@ -73,14 +78,12 @@ class Renderer(object):
         """
         id = id
         storage = self.storages[id]
-        
-        if hash(frozenset(storage.vertices)) != hash(frozenset(storage.previous_vertices)):
+        local_storage = self.local_storages[id]
+        if local_storage.has_changed(storage):
             self.buffers[id]["vertices"].modify(storage.vertices)
-            storage.previous_vertices = storage.vertices
-            
-        if hash(frozenset(storage.colors)) != hash(frozenset(storage.previous_colors)):
             self.buffers[id]["colors"].modify(storage.colors)
-            storage.previous_colors = storage.colors
+            local_storage.vertices = list(storage.vertices)
+            local_storage.colors = list(storage.colors)
             
     def update(self):
         """
