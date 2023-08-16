@@ -12,7 +12,7 @@ def initialize():
     else:
         glutInit()
     if not glfw.init():
-        raise Exception("GLFW not found! Are you sure you have glfw installed?")
+        raise Exception("GLFW failed to initialize!")
     
 def create_window():
     """
