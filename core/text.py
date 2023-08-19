@@ -1,8 +1,8 @@
 # imports
 import sys
 
-from OpenGL.GL import glPushMatrix, glPopMatrix, glWindowPos2f
-from OpenGL.GLUT import glutInit, glutBitmapCharacter, GLUT_BITMAP_8_BY_13
+from OpenGL.GL import glPopMatrix, glPushMatrix, glWindowPos2f
+from OpenGL.GLUT import GLUT_BITMAP_8_BY_13, glutBitmapCharacter, glutInit
 
 glutInit(sys.argv)  # Initialize glut
 

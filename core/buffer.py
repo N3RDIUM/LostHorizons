@@ -1,9 +1,10 @@
 # imports
 import numpy as np
-from OpenGL.GL import *
 from OpenGL.arrays import vbo
+from OpenGL.GL import *
 
 VBO_SIZE = 100000000
+
 
 class Buffer:
     """
@@ -17,7 +18,8 @@ class Buffer:
         Initializes the buffer.
         """
         self.id = id
-        self.buf = vbo.VBO(np.zeros(VBO_SIZE, dtype=np.float32), usage='GL_DYNAMIC_DRAW')
+        self.buf = vbo.VBO(np.zeros(VBO_SIZE, dtype=np.float32),
+                           usage="GL_DYNAMIC_DRAW")
 
     def modify(self, data, offset=0):
         """
@@ -29,22 +31,22 @@ class Buffer:
         # Modify the buffer
         data = np.array(data, dtype=np.float32)
         self.buf.bind()
-        self.buf[offset:offset+len(data)] = data
+        self.buf[offset:offset + len(data)] = data
         self.buf.unbind()
         glFlush()
-    
+
     def bind(self):
         """
         Binds the buffer.
         """
         self.buf.bind()
-        
+
     def unbind(self):
         """
         Unbinds the buffer.
         """
         self.buf.unbind()
-        
+
     def delete(self):
         """
         Deletes the buffer.
