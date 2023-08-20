@@ -1,6 +1,12 @@
 import math
 import multiprocessing
 
+from core.renderer import Renderer
+from core.util import normalize
+from camera.player import Player
+from planets.tesselate import tesselate_partial
+from planets.planet import Planet
+
 import noise
 
 from camera.player import Player
@@ -35,18 +41,12 @@ class Game(object):
                 multiprocessing.Process(target=self.process,
                                         args=(self.namespace, )))
             self.processes[i].start()
-
-        self.planet = DummyPlanet()
-        self.lnode = LeafNode(
-            quad=[(-1, -1, -1), (1, -1, -1), (1, -1, 1), (-1, -1, 1)],
-            segments=64,
-            parent=None,
-            planet=self.planet,
+            
+        self.planet = Planet(
             renderer=self.renderer,
             game=self,
         )
-        self.lnode.generate()
-
+        
         self.window.schedule_mainloop(self)
         self.window.schedule_shared_context(self)
 
@@ -83,6 +83,10 @@ class Game(object):
         if item["task"] == "generate_leafnode":
             # Tesselate
             quad = tuple(item["quad"])
+            newquad = []
+            for i in range(len(quad)):
+                newquad.append(tuple(quad[i]))
+            quad = tuple(newquad)
             segments = item["segments"]
             _new_verts = tesselate_partial(quad, segments, item["denominator"],
                                            item["numerator"])
@@ -111,7 +115,8 @@ class Game(object):
                 # Add noise
                 vector = [x, y, z]
                 vector = normalize(vector)
-                _noise = 1  # No noise for now
+                _noise = 1 # No noise for now
+                
                 x = x + vector[0] * _noise
                 y = y + vector[1] * _noise
                 z = z + vector[2] * _noise
@@ -135,7 +140,17 @@ class Game(object):
                         noise.pnoise3(x / 10 + 32, y / 10 + 32, z / 10 + 32) /
                         4 * 3 + 0.25),
                 ))
-
+                
+            # Get the average position (center) of the vertices
+            center = [0, 0, 0]
+            for i in range(len(_new_verts)):
+                center[0] += _new_verts[i][0]
+                center[1] += _new_verts[i][1]
+                center[2] += _new_verts[i][2]
+            center[0] /= len(_new_verts)
+            center[1] /= len(_new_verts)
+            center[2] /= len(_new_verts)
+                
             verts_1d = [item for sublist in _new_verts for item in sublist]
             namespace.storages[item["mesh"]].vertices.extend(verts_1d)
             namespace.storages[item["mesh"]].colors.extend(colors)
@@ -155,7 +170,7 @@ class Game(object):
         Draw call.
         """
         self.player.update(self.window.window)
-        self.renderer.draw()
+        self.planet.draw()
 
     def sharedcon(self):
         """

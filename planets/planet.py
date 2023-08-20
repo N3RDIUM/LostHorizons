@@ -1,10 +1,34 @@
-class DummyPlanet(object):
+from planets.node import Node
 
-    def __init__(self, center=[0, 0, 0], radius=10):
+class Planet(object):
+    def __init__(
+            self, 
+            position = (0, 0, 0), 
+            radius = 10,
+            renderer = None,
+            game = None
+        ):
         """
-        DummyPlanet
-
-        This is a dummy planet that is used for testing purposes.
+        Planet
         """
-        self.center = center
+        self.position = position
         self.radius = radius
+        self.renderer = renderer
+        self.game = game
+        
+        self.children = {}
+        
+        self.node = Node(
+            planet=self,
+            renderer=self.renderer,
+            game=self.game
+        )
+        self.node.generate()
+        self.node.split()
+        self.children[self.node.uuid] = self.node
+    
+    def draw(self):
+        """
+        Draw the planet.
+        """
+        self.node.draw()

@@ -39,6 +39,12 @@ class LeafNode(object):
                 "denominator": len(self.game.processes),
                 "numerator": i,
                 # Details for spherification
-                "planet_center": self.planet.center,
+                "planet_center": self.planet.position,
                 "planet_radius": self.planet.radius,
             })
+            
+    def draw(self):
+        """
+        Draw the chunk.
+        """
+        self.renderer.draw_storage(self.uuid)
