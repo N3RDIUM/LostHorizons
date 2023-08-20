@@ -1,19 +1,13 @@
 import math
 import multiprocessing
 
-from core.renderer import Renderer
-from core.util import normalize
-from camera.player import Player
-from planets.tesselate import tesselate_partial
-from planets.planet import Planet
-
 import noise
 
 from camera.player import Player
 from core.renderer import Renderer
 from core.util import normalize
 from planets.leafnode import LeafNode
-from planets.planet import DummyPlanet
+from planets.planet import DummyPlanet, Planet
 from planets.tesselate import tesselate_partial
 
 
@@ -41,12 +35,12 @@ class Game(object):
                 multiprocessing.Process(target=self.process,
                                         args=(self.namespace, )))
             self.processes[i].start()
-            
+
         self.planet = Planet(
             renderer=self.renderer,
             game=self,
         )
-        
+
         self.window.schedule_mainloop(self)
         self.window.schedule_shared_context(self)
 
@@ -115,8 +109,8 @@ class Game(object):
                 # Add noise
                 vector = [x, y, z]
                 vector = normalize(vector)
-                _noise = 1 # No noise for now
-                
+                _noise = 1  # No noise for now
+
                 x = x + vector[0] * _noise
                 y = y + vector[1] * _noise
                 z = z + vector[2] * _noise
@@ -140,7 +134,7 @@ class Game(object):
                         noise.pnoise3(x / 10 + 32, y / 10 + 32, z / 10 + 32) /
                         4 * 3 + 0.25),
                 ))
-                
+
             # Get the average position (center) of the vertices
             center = [0, 0, 0]
             for i in range(len(_new_verts)):
@@ -150,7 +144,7 @@ class Game(object):
             center[0] /= len(_new_verts)
             center[1] /= len(_new_verts)
             center[2] /= len(_new_verts)
-                
+
             verts_1d = [item for sublist in _new_verts for item in sublist]
             namespace.storages[item["mesh"]].vertices.extend(verts_1d)
             namespace.storages[item["mesh"]].colors.extend(colors)
