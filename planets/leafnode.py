@@ -42,7 +42,7 @@ class LeafNode(object):
                 "planet_center": self.planet.position,
                 "planet_radius": self.planet.radius,
             })
-            
+
     def draw(self):
         """
         Draw the chunk.
