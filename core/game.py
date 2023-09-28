@@ -41,7 +41,7 @@ class Game(object):
                     (1, -1, 1),
                     (-1, -1, 1)
                 ],
-                "segments": 128,
+                "segments": 256,
                 "denominator": len(self.processes),
                 "numerator": i
             })

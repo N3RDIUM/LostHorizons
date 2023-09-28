@@ -67,8 +67,7 @@ class Renderer(object):
         local_storage.colors.extend(list(colors))
         self.buffers[id]["vertices"].modify(local_storage.vertices)
         self.buffers[id]["colors"].modify(local_storage.colors)
-        # Remove file
-        # os.remove(result["datafile"])
+        os.remove(result["datafile"])
 
     def update(self):
         """
