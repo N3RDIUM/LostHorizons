@@ -4,7 +4,7 @@ from core.renderer import Renderer
 from camera.player import Player
 from core.tesselate import tesselate_partial
 from core.fractalnoise import fractal_noise
-from core.twod_lod import LoD
+from planets.twod_lod import LoD
 
 import filelock
 import json
@@ -33,7 +33,7 @@ class Game(object):
                 multiprocessing.Process(target=self.process, args=(self.namespace,)))
             self.processes[i].start()
         
-        self.lod = LoD(self, 1)
+        self.lod = LoD(self, 4)
         self.lod.generate()
         
         self.window.schedule_mainloop(self)
@@ -75,17 +75,19 @@ class Game(object):
             _new_verts = tesselate_partial(quad, segments, item["denominator"], item["numerator"])
             colors = []
             for i in range(len(_new_verts)):
-                noiseval = fractal_noise(_new_verts[i]) / segments
+                noiseval = fractal_noise([
+                    _new_verts[i][0] / 10,
+                    _new_verts[i][1] / 10,
+                    _new_verts[i][2] / 10
+                ])
                 _new_verts[i] = (
                     _new_verts[i][0],
-                    _new_verts[i][1] + noiseval * 32,
+                    _new_verts[i][1] + noiseval * 4,
                     _new_verts[i][2],
                 )
                 colors.extend((
-                    fractal_noise((_new_verts[i][0] + 1, _new_verts[i][1] * 2, _new_verts[i][2] + 3)),
-                    fractal_noise((_new_verts[i][0] + 6, _new_verts[i][1] * 5, _new_verts[i][2] + 4)),
-                    fractal_noise((_new_verts[i][0] + 7, _new_verts[i][1] * 8, _new_verts[i][2] + 9)),
-                ))
+                    noiseval* 0.5 + 0.5,
+                ) * 3)
             verts_1d = [item for sublist in _new_verts for item in sublist]
             file = f".datatrans/{item['mesh']}-{item['numerator']}.json"
             with filelock.FileLock(file + ".lock"):
@@ -116,9 +118,11 @@ class Game(object):
         """
         self.player.update(self.window.window)
         self.renderer.draw()
-        if len(self.generation_queue) > 0 and self.frame % 4 == 0:
+        self.lod.on_drawcall()
+        if len(self.generation_queue) > 0 and self.frame % 8 == 0:
             self.generation_queue.pop(0).generate()
         self.frame += 1
+        
     def sharedcon(self):
         """
         Shared context.

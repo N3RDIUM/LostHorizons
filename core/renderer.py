@@ -58,10 +58,12 @@ class Renderer(object):
                 res = json.load(f)
                 vertices = res["vertices"]
                 colors = res["colors"]
-        self.storages[id].vertices += vertices
-        self.storages[id].colors += colors
-        self.buffers[id]["vertices"].modify(self.storages[id].vertices)
-        self.buffers[id]["colors"].modify(self.storages[id].colors)
+        try:
+            self.storages[id].vertices += vertices
+            self.storages[id].colors += colors
+            self.buffers[id]["vertices"].modify(vertices)
+            self.buffers[id]["colors"].modify(colors)
+        except KeyError: pass
         os.remove(result["datafile"])
 
     def update(self):
@@ -100,7 +102,9 @@ class Renderer(object):
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_COLOR_ARRAY)
         for storage in self.storages:
-            self.draw_storage(storage)
+            try:
+                self.draw_storage(storage)
+            except KeyError: pass
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
 
@@ -108,6 +112,9 @@ class Renderer(object):
         """
         Delete the specified storage.
         """
-        for buffer_type in self.buffers[id]:
-            self.buffers[id][buffer_type].delete()
-        del self.buffers[id]
+        try:
+            for buffer_type in self.buffers[id]:
+                self.buffers[id][buffer_type].delete()
+            del self.buffers[id]
+            del self.storages[id]
+        except KeyError: pass

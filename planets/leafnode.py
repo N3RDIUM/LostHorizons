@@ -35,3 +35,9 @@ class LeafNode(object):
                 "denominator": len(self.game.processes),
                 "numerator": i,
             })
+            
+    def delete(self):
+        """
+        Delete this chunk.
+        """
+        self.renderer.delete_storage(self.uuid)

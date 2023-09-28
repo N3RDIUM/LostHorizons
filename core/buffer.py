@@ -15,9 +15,10 @@ class Buffer:
         Initializes the buffer.
         """
         self.id = id
-        self.buf = vbo.VBO(np.zeros(VBO_SIZE, dtype=np.float32),  usage="GL_STATIC_DRAW", target="GL_ARRAY_BUFFER")
+        self.buf = vbo.VBO(np.zeros(VBO_SIZE, dtype=np.float32), usage="GL_STATIC_DRAW", target="GL_ARRAY_BUFFER")
+        self.max_idx = 0
 
-    def modify(self, data, offset=0):
+    def modify(self, data, offset=-1):
         """
         Adds data to the buffer.
 
@@ -25,9 +26,10 @@ class Buffer:
         :param offset: The offset to start writing at.
         """
         data = np.array(data, dtype=np.float32)
-        self.buf.bind()
+        if offset == -1:
+            offset = self.max_idx
+        self.max_idx = max(self.max_idx, offset + len(data))
         self.buf[offset:offset + len(data)] = data
-        self.buf.unbind()
 
     def delete(self):
         self.buf.delete()
