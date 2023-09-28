@@ -4,10 +4,10 @@ from core.renderer import Renderer
 from camera.player import Player
 from core.tesselate import tesselate_partial
 from core.fractalnoise import fractal_noise
+from core.twod_lod import LoD
 
 import filelock
 import json
-
 class Game(object):
     def __init__(self, window):
         """
@@ -17,9 +17,11 @@ class Game(object):
         self.window = window
         self.renderer = Renderer(self)
         self.player = Player()
+        self.frame = 0
         
         self.processes = []
         self.result_queue = []
+        self.generation_queue = []
         self.manager = multiprocessing.Manager()
         self.namespace = self.manager.Namespace()
         self.namespace.queue = self.manager.Queue()
@@ -30,22 +32,9 @@ class Game(object):
             self.processes.append(
                 multiprocessing.Process(target=self.process, args=(self.namespace,)))
             self.processes[i].start()
-            
-        for i in range(len(self.processes)):
-            asdf = 1
-            self.addToQueue({
-                "task": "tesselate",
-                "mesh": "default",
-                "quad": [
-                    (-asdf, -1, -asdf),
-                    (asdf, -1, -asdf),
-                    (asdf, -1, asdf),
-                    (-asdf, -1, asdf)
-                ],
-                "segments": 128,
-                "denominator": len(self.processes),
-                "numerator": i
-            })
+        
+        self.lod = LoD(self, 1)
+        self.lod.generate()
         
         self.window.schedule_mainloop(self)
         self.window.schedule_shared_context(self)
@@ -86,11 +75,11 @@ class Game(object):
             _new_verts = tesselate_partial(quad, segments, item["denominator"], item["numerator"])
             colors = []
             for i in range(len(_new_verts)):
-                noiseval = fractal_noise(_new_verts[i])
+                noiseval = fractal_noise(_new_verts[i]) / segments
                 _new_verts[i] = (
-                    _new_verts[i][0] * segments,
+                    _new_verts[i][0],
                     _new_verts[i][1] + noiseval * 32,
-                    _new_verts[i][2] * segments,
+                    _new_verts[i][2],
                 )
                 colors.extend((
                     noiseval * 0.5 + 0.5,
@@ -98,8 +87,7 @@ class Game(object):
                     noiseval * 0.5 + 0.5,
                 ))
             verts_1d = [item for sublist in _new_verts for item in sublist]
-            # save to JSON
-            file = f".datatrans/default-{item['numerator']}.json"
+            file = f".datatrans/{item['mesh']}-{item['numerator']}.json"
             with filelock.FileLock(file + ".lock"):
                 with open(file, "w") as f:
                     json.dump({
@@ -108,7 +96,7 @@ class Game(object):
                     }, f)
             namespace.result_queue.put({
                 "type": "buffer_mod",
-                "mesh": "default",
+                "mesh": item["mesh"],
                 "numerator": item["numerator"],
                 "denominator": item["denominator"],
                 "datafile": file
@@ -128,7 +116,9 @@ class Game(object):
         """
         self.player.update(self.window.window)
         self.renderer.draw()
-
+        if len(self.generation_queue) > 0 and self.frame % 32 == 0:
+            self.generation_queue.pop(0).generate()
+        self.frame += 1
     def sharedcon(self):
         """
         Shared context.

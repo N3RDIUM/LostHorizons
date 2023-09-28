@@ -22,7 +22,6 @@ glEnable(GL_ARRAY_BUFFER)
 glEnableClientState(GL_VERTEX_ARRAY)
 glEnableClientState(GL_COLOR_ARRAY)
 
-
 class Renderer(object):
     def __init__(self, parent):
         """
@@ -33,8 +32,6 @@ class Renderer(object):
         self.parent = parent
         self.storages = {}
         self.buffers = {}
-
-        self.create_storage("default")
 
         glEnableClientState(GL_VERTEX_ARRAY)
         
@@ -56,17 +53,15 @@ class Renderer(object):
         If the storage has changed, update it.
         TODO: Only update the parts of the storage that have changed.
         """
-        id = id
-        local_storage = self.storages[id]
         with filelock.FileLock(result["datafile"] + ".lock"):
             with open(result["datafile"], "r") as f:
                 res = json.load(f)
                 vertices = res["vertices"]
                 colors = res["colors"]
-        local_storage.vertices.extend(list(vertices))
-        local_storage.colors.extend(list(colors))
-        self.buffers[id]["vertices"].modify(local_storage.vertices)
-        self.buffers[id]["colors"].modify(local_storage.colors)
+        self.storages[id].vertices += vertices
+        self.storages[id].colors += colors
+        self.buffers[id]["vertices"].modify(self.storages[id].vertices)
+        self.buffers[id]["colors"].modify(self.storages[id].colors)
         os.remove(result["datafile"])
 
     def update(self):
@@ -76,11 +71,7 @@ class Renderer(object):
         for i in range(len(self.parent.result_queue)):
             item = self.parent.result_queue[i]
             if item["type"] == "buffer_mod":
-                if item["mesh"] in self.storages:
-                    self.update_storage(item["mesh"], item)
-                # else:
-                    # self.create_storage(item["mesh"])
-                    # self.update_storage(item["mesh"], item)
+                self.update_storage(item["mesh"], item)
                 self.parent.result_queue.pop(i)
 
     def draw_storage(self, id):
