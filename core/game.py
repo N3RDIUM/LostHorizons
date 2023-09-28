@@ -4,7 +4,8 @@ from core.renderer import Renderer
 from camera.player import Player
 from planets.tesselate import tesselate_partial
 
-import random
+import filelock
+import json
 import noise
 
 class Game(object):
@@ -14,15 +15,15 @@ class Game(object):
         This is the main game class.
         """
         self.window = window
-        self.renderer = Renderer()
+        self.renderer = Renderer(self)
         self.player = Player()
         
         self.processes = []
+        self.result_queue = []
         self.manager = multiprocessing.Manager()
         self.namespace = self.manager.Namespace()
         self.namespace.queue = self.manager.Queue()
         self.namespace.result_queue = self.manager.Queue()
-        self.namespace.storages = self.renderer.storages
         self.namespace.killed = False
         self.process_count = multiprocessing.cpu_count()
         for i in range(self.process_count):
@@ -40,7 +41,7 @@ class Game(object):
                     (1, -1, 1),
                     (-1, -1, 1)
                 ],
-                "segments": 100,
+                "segments": 128,
                 "denominator": len(self.processes),
                 "numerator": i
             })
@@ -100,9 +101,22 @@ class Game(object):
                     abs(noise.pnoise3(x / 10 + 16, y / 10 + 16, z / 10 + 16) / 4 * 3 + 0.25),
                     abs(noise.pnoise3(x / 10 + 32, y / 10 + 32, z / 10 + 32) / 4 * 3 + 0.25)
                 ))
-            namespace.storages['default'].vertices.extend(verts_1d)
-            namespace.storages['default'].colors.extend(colors)
-            
+            # save to JSON
+            file = f".datatrans/default-{item['numerator']}.json"
+            with filelock.FileLock(file + ".lock"):
+                with open(file, "w") as f:
+                    json.dump({
+                        "vertices": list(verts_1d).copy(),
+                        "colors": list(colors).copy()
+                    }, f)
+            namespace.result_queue.put({
+                "type": "buffer_mod",
+                "mesh": "default",
+                "numerator": item["numerator"],
+                "denominator": item["denominator"],
+                "datafile": file
+            })
+                
     def terminate(self):
         """
         Terminate all processes.
@@ -123,4 +137,5 @@ class Game(object):
         Shared context.
         """
         while not self.namespace.killed:
+            self.result_queue.append(self.namespace.result_queue.get())
             self.renderer.update()
