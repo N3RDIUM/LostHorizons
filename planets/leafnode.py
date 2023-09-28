@@ -1,15 +1,15 @@
 from uuid import uuid4
 
+
 class LeafNode(object):
-    def __init__(
-        self,
-        quad,
-        segments = 64,
-        parent = None,
-        planet = None,
-        renderer = None,
-        game = None
-    ):
+
+    def __init__(self,
+                 quad,
+                 segments=64,
+                 parent=None,
+                 planet=None,
+                 renderer=None,
+                 game=None):
         """
         LeafNode
         """
@@ -20,7 +20,7 @@ class LeafNode(object):
         self.renderer = renderer
         self.game = game
         self.uuid = str(uuid4())
-        
+
     def generate(self):
         """
         Schedule the generation of this chunk using multiprocessing.
