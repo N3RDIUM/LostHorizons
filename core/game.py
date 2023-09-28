@@ -1,14 +1,16 @@
+import json
 import multiprocessing
 
-from core.renderer import Renderer
-from camera.player import Player
-from core.tesselate import tesselate_partial
-from core.fractalnoise import fractal_noise
-
 import filelock
-import json
+
+from camera.player import Player
+from core.fractalnoise import fractal_noise
+from core.renderer import Renderer
+from core.tesselate import tesselate_partial
+
 
 class Game(object):
+
     def __init__(self, window):
         """
         class Game
@@ -17,7 +19,7 @@ class Game(object):
         self.window = window
         self.renderer = Renderer(self)
         self.player = Player()
-        
+
         self.processes = []
         self.result_queue = []
         self.manager = multiprocessing.Manager()
@@ -28,52 +30,59 @@ class Game(object):
         self.process_count = multiprocessing.cpu_count()
         for i in range(self.process_count):
             self.processes.append(
-                multiprocessing.Process(target=self.process, args=(self.namespace,)))
+                multiprocessing.Process(target=self.process,
+                                        args=(self.namespace, )))
             self.processes[i].start()
-            
+
         for i in range(len(self.processes)):
             asdf = 1
             self.addToQueue({
-                "task": "tesselate",
-                "mesh": "default",
+                "task":
+                "tesselate",
+                "mesh":
+                "default",
                 "quad": [
                     (-asdf, -1, -asdf),
                     (asdf, -1, -asdf),
                     (asdf, -1, asdf),
-                    (-asdf, -1, asdf)
+                    (-asdf, -1, asdf),
                 ],
-                "segments": 128,
-                "denominator": len(self.processes),
-                "numerator": i
+                "segments":
+                128,
+                "denominator":
+                len(self.processes),
+                "numerator":
+                i,
             })
-        
+
         self.window.schedule_mainloop(self)
         self.window.schedule_shared_context(self)
-            
+
     def addToQueue(self, item):
         """
         Add an item to the queue.
         """
         self.namespace.queue.put(item)
-    
+
     @staticmethod
     def process(namespace):
         """
         This function is called to start a multiprocessing process.
         """
         import glfw
+
         glfw.init()
-        
+
         # Get all items from the queue
         queue = namespace.queue
         while not namespace.killed:
             if not queue.empty():
                 item = queue.get()
                 Game.handleQueueItem(item, namespace)
-                
+
         if namespace.killed:
             glfw.terminate()
-            
+
     @staticmethod
     def handleQueueItem(item, namespace):
         """
@@ -83,7 +92,8 @@ class Game(object):
             # Vertex calculations
             quad = tuple(item["quad"])
             segments = item["segments"]
-            _new_verts = tesselate_partial(quad, segments, item["denominator"], item["numerator"])
+            _new_verts = tesselate_partial(quad, segments, item["denominator"],
+                                           item["numerator"])
             colors = []
             for i in range(len(_new_verts)):
                 noiseval = fractal_noise(_new_verts[i])
@@ -102,18 +112,21 @@ class Game(object):
             file = f".datatrans/default-{item['numerator']}.json"
             with filelock.FileLock(file + ".lock"):
                 with open(file, "w") as f:
-                    json.dump({
-                        "vertices": list(verts_1d).copy(),
-                        "colors": list(colors).copy()
-                    }, f)
+                    json.dump(
+                        {
+                            "vertices": list(verts_1d).copy(),
+                            "colors": list(colors).copy(),
+                        },
+                        f,
+                    )
             namespace.result_queue.put({
                 "type": "buffer_mod",
                 "mesh": "default",
                 "numerator": item["numerator"],
                 "denominator": item["denominator"],
-                "datafile": file
+                "datafile": file,
             })
-                
+
     def terminate(self):
         """
         Terminate all processes.
@@ -121,7 +134,7 @@ class Game(object):
         self.namespace.killed = True
         for process in self.processes:
             process.terminate()
-                
+
     def drawcall(self):
         """
         Draw call.
