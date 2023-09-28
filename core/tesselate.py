@@ -1,6 +1,6 @@
-from functools import lru_cache
+import numba
 
-@lru_cache(maxsize=128)
+@numba.jit(nopython=True)
 def tesselate(quad, segments=100):
     """
     This function takes a 3d quad and returns a triangle mesh
@@ -40,7 +40,7 @@ def tesselate(quad, segments=100):
     # Return the new vertices
     return new_verts
 
-@lru_cache(maxsize=128)
+@numba.jit(nopython=True)
 def tesselate_partial(quad, segments=100, denominator=4, numerator=1):
     """
     Same as tesselate function, but only returns a partial grid.

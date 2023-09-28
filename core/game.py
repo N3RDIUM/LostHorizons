@@ -2,11 +2,11 @@ import multiprocessing
 
 from core.renderer import Renderer
 from camera.player import Player
-from planets.tesselate import tesselate_partial
+from core.tesselate import tesselate_partial
+from core.fractalnoise import fractal_noise
 
 import filelock
 import json
-import noise
 
 class Game(object):
     def __init__(self, window):
@@ -32,16 +32,17 @@ class Game(object):
             self.processes[i].start()
             
         for i in range(len(self.processes)):
+            asdf = 1
             self.addToQueue({
                 "task": "tesselate",
                 "mesh": "default",
                 "quad": [
-                    (-1, -1, -1),
-                    (1, -1, -1),
-                    (1, -1, 1),
-                    (-1, -1, 1)
+                    (-asdf, -1, -asdf),
+                    (asdf, -1, -asdf),
+                    (asdf, -1, asdf),
+                    (-asdf, -1, asdf)
                 ],
-                "segments": 256,
+                "segments": 128,
                 "denominator": len(self.processes),
                 "numerator": i
             })
@@ -83,24 +84,20 @@ class Game(object):
             quad = tuple(item["quad"])
             segments = item["segments"]
             _new_verts = tesselate_partial(quad, segments, item["denominator"], item["numerator"])
-            for i in range(len(_new_verts)):
-                _new_verts[i] = (
-                    _new_verts[i][0] * segments,
-                    _new_verts[i][1] + noise.pnoise3(_new_verts[i][0], _new_verts[i][1], _new_verts[i][2]) * 10,
-                    _new_verts[i][2] * segments,
-                )
-            verts_1d = [item for sublist in _new_verts for item in sublist]
-            # Color calculations based on perlin noise in that area
             colors = []
             for i in range(len(_new_verts)):
-                x = _new_verts[i][0]
-                y = _new_verts[i][1]
-                z = _new_verts[i][2]
+                noiseval = fractal_noise(_new_verts[i])
+                _new_verts[i] = (
+                    _new_verts[i][0] * segments,
+                    _new_verts[i][1] + noiseval * 32,
+                    _new_verts[i][2] * segments,
+                )
                 colors.extend((
-                    abs(noise.pnoise3(x / 10 + 8, y / 10 + 8, z / 10 + 8) / 4 * 3 + 0.25), 
-                    abs(noise.pnoise3(x / 10 + 16, y / 10 + 16, z / 10 + 16) / 4 * 3 + 0.25),
-                    abs(noise.pnoise3(x / 10 + 32, y / 10 + 32, z / 10 + 32) / 4 * 3 + 0.25)
+                    noiseval * 0.5 + 0.5,
+                    noiseval * 0.5 + 0.5,
+                    noiseval * 0.5 + 0.5,
                 ))
+            verts_1d = [item for sublist in _new_verts for item in sublist]
             # save to JSON
             file = f".datatrans/default-{item['numerator']}.json"
             with filelock.FileLock(file + ".lock"):

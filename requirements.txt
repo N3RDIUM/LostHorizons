@@ -3,3 +3,5 @@ PyOpenGL-Accelerate
 glfw
 numpy
 noise
+numba
+filelock

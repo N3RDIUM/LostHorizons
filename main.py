@@ -2,6 +2,8 @@ import glfw
 from OpenGL.GLUT import glutInit
 from core.window import Window
 from core.game import Game
+import os
+import shutil
 
 def initialize():
     """
@@ -13,6 +15,11 @@ def initialize():
         glutInit()
     if not glfw.init():
         raise Exception("GLFW failed to initialize!")
+    
+    try:
+        shutil.rmtree(".datatrans")
+    except FileNotFoundError: pass
+    os.mkdir(".datatrans")
 
 def create_window():
     """
