@@ -1,5 +1,7 @@
 import json
+import os
 
+import filelock
 from OpenGL.GL import *
 from OpenGL.GL import (
     GL_ARRAY_BUFFER,
@@ -15,8 +17,6 @@ from OpenGL.GL import (
 
 from core.buffer import Buffer
 from core.bufferdata import BufferDataStorage
-import os
-import filelock
 
 glEnable(GL_ARRAY_BUFFER)
 glEnableClientState(GL_VERTEX_ARRAY)
@@ -24,6 +24,7 @@ glEnableClientState(GL_COLOR_ARRAY)
 
 
 class Renderer(object):
+
     def __init__(self, parent):
         """
         Renderer
@@ -37,7 +38,7 @@ class Renderer(object):
         self.create_storage("default")
 
         glEnableClientState(GL_VERTEX_ARRAY)
-        
+
     def create_storage(self, id):
         """
         Create a new storage.
@@ -79,8 +80,8 @@ class Renderer(object):
                 if item["mesh"] in self.storages:
                     self.update_storage(item["mesh"], item)
                 # else:
-                    # self.create_storage(item["mesh"])
-                    # self.update_storage(item["mesh"], item)
+                # self.create_storage(item["mesh"])
+                # self.update_storage(item["mesh"], item)
                 self.parent.result_queue.pop(i)
 
     def draw_storage(self, id):
