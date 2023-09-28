@@ -1,5 +1,7 @@
 import json
+import os
 
+import filelock
 from OpenGL.GL import *
 from OpenGL.GL import (
     GL_ARRAY_BUFFER,
@@ -15,14 +17,14 @@ from OpenGL.GL import (
 
 from core.buffer import Buffer
 from core.bufferdata import BufferDataStorage
-import os
-import filelock
 
 glEnable(GL_ARRAY_BUFFER)
 glEnableClientState(GL_VERTEX_ARRAY)
 glEnableClientState(GL_COLOR_ARRAY)
 
+
 class Renderer(object):
+
     def __init__(self, parent):
         """
         Renderer
@@ -34,7 +36,7 @@ class Renderer(object):
         self.buffers = {}
 
         glEnableClientState(GL_VERTEX_ARRAY)
-        
+
     def create_storage(self, id):
         """
         Create a new storage.
@@ -63,7 +65,8 @@ class Renderer(object):
             self.storages[id].colors += colors
             self.buffers[id]["vertices"].modify(vertices)
             self.buffers[id]["colors"].modify(colors)
-        except KeyError: pass
+        except KeyError:
+            pass
         os.remove(result["datafile"])
 
     def update(self):
@@ -86,7 +89,7 @@ class Renderer(object):
         glVertexPointer(3, GL_FLOAT, 0, vbo_vertices)
         vbo_colors.bind()
         glColorPointer(3, GL_FLOAT, 0, vbo_colors)
-        
+
         glDrawArrays(GL_TRIANGLES, 0, len(self.storages[id].vertices) // 3)
 
         vbo_vertices.unbind()
@@ -104,7 +107,8 @@ class Renderer(object):
         for storage in self.storages:
             try:
                 self.draw_storage(storage)
-            except KeyError: pass
+            except KeyError:
+                pass
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
 
@@ -117,4 +121,5 @@ class Renderer(object):
                 self.buffers[id][buffer_type].delete()
             del self.buffers[id]
             del self.storages[id]
-        except KeyError: pass
+        except KeyError:
+            pass
