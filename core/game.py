@@ -82,9 +82,9 @@ class Game(object):
                     _new_verts[i][2],
                 )
                 colors.extend((
-                    noiseval * 0.5 + 0.5,
-                    noiseval * 0.5 + 0.5,
-                    noiseval * 0.5 + 0.5,
+                    fractal_noise((_new_verts[i][0] + 1, _new_verts[i][1] * 2, _new_verts[i][2] + 3)),
+                    fractal_noise((_new_verts[i][0] + 6, _new_verts[i][1] * 5, _new_verts[i][2] + 4)),
+                    fractal_noise((_new_verts[i][0] + 7, _new_verts[i][1] * 8, _new_verts[i][2] + 9)),
                 ))
             verts_1d = [item for sublist in _new_verts for item in sublist]
             file = f".datatrans/{item['mesh']}-{item['numerator']}.json"
@@ -116,7 +116,7 @@ class Game(object):
         """
         self.player.update(self.window.window)
         self.renderer.draw()
-        if len(self.generation_queue) > 0 and self.frame % 32 == 0:
+        if len(self.generation_queue) > 0 and self.frame % 4 == 0:
             self.generation_queue.pop(0).generate()
         self.frame += 1
     def sharedcon(self):

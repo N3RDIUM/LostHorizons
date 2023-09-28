@@ -78,39 +78,31 @@ class Renderer(object):
         """
         Draw the specified storage.
         """
-        glClear(GL_COLOR_BUFFER_BIT)
-
         vbo_vertices = self.buffers[id]["vertices"].buf
         vbo_colors = self.buffers[id]["colors"].buf
-
-        glEnableClientState(GL_VERTEX_ARRAY)
-        glEnableClientState(GL_COLOR_ARRAY)
-
-        # Bind and enable vertex VBO
         vbo_vertices.bind()
         glVertexPointer(3, GL_FLOAT, 0, vbo_vertices)
-
-        # Bind and enable color VBO
         vbo_colors.bind()
         glColorPointer(3, GL_FLOAT, 0, vbo_colors)
-
-        glPointSize(8)
-        glEnable(GL_POINT_SMOOTH)
+        
         glDrawArrays(GL_TRIANGLES, 0, len(self.storages[id].vertices) // 3)
 
-        # Clean up
         vbo_vertices.unbind()
         vbo_colors.unbind()
-
-        glDisableClientState(GL_VERTEX_ARRAY)
-        glDisableClientState(GL_COLOR_ARRAY)
 
     def draw(self):
         """
         Draw all the storages.
         """
+        glClear(GL_COLOR_BUFFER_BIT)
+        glClear(GL_DEPTH_BUFFER_BIT)
+        glEnable(GL_DEPTH_TEST)
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glEnableClientState(GL_COLOR_ARRAY)
         for storage in self.storages:
             self.draw_storage(storage)
+        glDisableClientState(GL_VERTEX_ARRAY)
+        glDisableClientState(GL_COLOR_ARRAY)
 
     def delete_storage(self, id):
         """

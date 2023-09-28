@@ -29,7 +29,7 @@ class LoD:
         self.game.generation_queue.append(self.leafnode)
         
     def generate(self):
-        for x in range(-self.render_distance, self.render_distance):
-            for z in range(-self.render_distance, self.render_distance):
+        for x in range(-self.render_distance, self.render_distance+1):
+            for z in range(-self.render_distance, self.render_distance+1):
                 self.generate_chunk(x, z)
                 self.nodes.append(self.leafnode)

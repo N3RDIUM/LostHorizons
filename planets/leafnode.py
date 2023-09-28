@@ -26,7 +26,7 @@ class LeafNode(object):
         Schedule the generation of this chunk using multiprocessing.
         """
         self.mesh = self.renderer.create_storage(self.uuid)
-        for i in range(len(self.game.processes)):
+        for i in range(len(self.game.processes) + 1):
             self.game.addToQueue({
                 "task": "tesselate",
                 "mesh": self.uuid,
