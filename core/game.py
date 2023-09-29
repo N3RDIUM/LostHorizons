@@ -11,6 +11,7 @@ import filelock
 import json
 import random
 import uuid
+import time
 
 class Game(object):
     def __init__(self, window):
@@ -146,5 +147,5 @@ class Game(object):
             
     def generate_thread(self):
         while not self.namespace.killed:
-                if len(self.generation_queue) > 0:
-                    self.generation_queue.pop(0).generate()
+            if len(self.generation_queue) > 0:
+                self.generation_queue.pop(0).generate()
