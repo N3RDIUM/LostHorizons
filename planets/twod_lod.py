@@ -1,6 +1,8 @@
 from planets.quadtree import Node
 
+
 class LoD:
+
     def __init__(self, game, render_distance, chunk_size=256):
         self.nodes = {}
         self.render_distance = render_distance
@@ -8,7 +10,7 @@ class LoD:
         self.renderer = game.renderer
         self.player = game.player
         self.chunk_size = chunk_size
-        
+
     def generate_chunk(self, x, z):
         _x = int(x)
         _z = int(z)
@@ -21,30 +23,28 @@ class LoD:
         z *= self.chunk_size
         Z *= self.chunk_size
         self.leafnode = Node(
-            quad= [
-                (x, -1, z),
-                (X, -1, z),
-                (X, -1, Z),
-                (x, -1, Z)
-            ],
+            quad=[(x, -1, z), (X, -1, z), (X, -1, Z), (x, -1, Z)],
             parent=None,
             planet=None,
             renderer=self.renderer,
-            game=self.game
+            game=self.game,
         )
         self.nodes[(_x, _z)] = self.leafnode
-        
+
     def generate(self):
-        for x in range(-self.render_distance, self.render_distance+1):
-            for z in range(-self.render_distance, self.render_distance+1):
+        for x in range(-self.render_distance, self.render_distance + 1):
+            for z in range(-self.render_distance, self.render_distance + 1):
                 self.generate_chunk(x, z)
-                
+
     def update(self):
         player_position = self.player.position
-        player_position = (-player_position[0] // self.chunk_size, -player_position[2] // self.chunk_size)
+        player_position = (
+            -player_position[0] // self.chunk_size,
+            -player_position[2] // self.chunk_size,
+        )
         _nodes = []
-        for x in range(-self.render_distance, self.render_distance+1):
-            for z in range(-self.render_distance, self.render_distance+1):
+        for x in range(-self.render_distance, self.render_distance + 1):
+            for z in range(-self.render_distance, self.render_distance + 1):
                 _nodes.append((x + player_position[0], z + player_position[1]))
         for node in _nodes:
             if node not in self.nodes:
@@ -56,6 +56,6 @@ class LoD:
                 to_delete.append(node)
         for node in to_delete:
             del self.nodes[node]
-        
+
         for node in self.nodes:
             self.nodes[node].update()
