@@ -32,6 +32,7 @@ class Renderer(object):
         self.parent = parent
         self.storages = {}
         self.buffers = {}
+        self.deletion_queue = []
 
         glEnableClientState(GL_VERTEX_ARRAY)
         
@@ -46,6 +47,7 @@ class Renderer(object):
         self.buffers[id] = {
             "vertices": Buffer(f"{str(id)}-vertices"),
             "colors": Buffer(f"{str(id)}-colors"),
+            "show": True
         }
 
     def update_storage(self, id, result):
@@ -54,10 +56,13 @@ class Renderer(object):
         TODO: Only update the parts of the storage that have changed.
         """
         with filelock.FileLock(result["datafile"] + ".lock"):
+            conents = ""
             with open(result["datafile"], "r") as f:
-                res = json.load(f)
-                vertices = res["vertices"]
-                colors = res["colors"]
+                for line in f:
+                    conents += line
+            res = json.loads(conents)
+            vertices = res["vertices"]
+            colors = res["colors"]
         try:
             self.storages[id].vertices += vertices
             self.storages[id].colors += colors
@@ -71,10 +76,12 @@ class Renderer(object):
         Update the buffers.
         """
         for i in range(len(self.parent.result_queue)):
-            item = self.parent.result_queue[i]
-            if item["type"] == "buffer_mod":
-                self.update_storage(item["mesh"], item)
-                self.parent.result_queue.pop(i)
+            try:
+                item = self.parent.result_queue[i]
+                if item["type"] == "buffer_mod":
+                    self.update_storage(item["mesh"], item)
+                    self.parent.result_queue.pop(i)
+            except IndexError: self.update()
 
     def draw_storage(self, id):
         """
@@ -101,20 +108,37 @@ class Renderer(object):
         glEnable(GL_DEPTH_TEST)
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_COLOR_ARRAY)
-        for storage in self.storages:
-            try:
-                self.draw_storage(storage)
-            except KeyError: pass
+        try:
+            for storage in self.storages:
+                try:
+                    if self.buffers[storage]["show"]:
+                        self.draw_storage(storage)
+                except KeyError: pass
+        except RuntimeError: self.draw()
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
+        
+        # Process one deletion per frame
+        if len(self.deletion_queue) > 0:
+            self.delete_storage(self.deletion_queue.pop(0))
 
     def delete_storage(self, id):
         """
         Delete the specified storage.
         """
         try:
+            del self.buffers[id]["show"]
             for buffer_type in self.buffers[id]:
                 self.buffers[id][buffer_type].delete()
             del self.buffers[id]
             del self.storages[id]
         except KeyError: pass
+        
+    def delete_later(self, id):
+        """
+        Delete the specified storage later.
+        """
+        self.deletion_queue.append(id)
+        
+    def show(self, id): self.buffers[id]["show"] = True
+    def hide(self, id): self.buffers[id]["show"] = False

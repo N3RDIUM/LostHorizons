@@ -11,3 +11,6 @@ def fractal_noise(point):
         amplitude *= 0.5
         
     return noiseSum
+
+def fractal_ridge_noise(point):
+    return 1 - abs(fractal_noise(point))

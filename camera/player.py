@@ -6,12 +6,12 @@ from OpenGL.GL import *
 
 class Player(object):
 
-    def __init__(self, position=[0, 0, 0], rotation=[0, 0, 0], planet=None):
+    def __init__(self, position=[0, -64, 0], rotation=[0, 0, 0], planet=None):
         self.position = position
         self.rotation = rotation
         self.planet = planet
         self.mouse_prev = glfw.get_cursor_pos(glfw.get_current_context())
-        self.speed_mlt = 1
+        self.speed_mlt = 8
         self.speed = self.speed_mlt
 
     def update(self, window):

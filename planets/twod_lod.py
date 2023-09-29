@@ -1,7 +1,7 @@
-from planets.leafnode import LeafNode
+from planets.quadtree import Node
 
 class LoD:
-    def __init__(self, game, render_distance, chunk_size=16):
+    def __init__(self, game, render_distance, chunk_size=256):
         self.nodes = {}
         self.render_distance = render_distance
         self.game = game
@@ -20,20 +20,18 @@ class LoD:
         X *= self.chunk_size
         z *= self.chunk_size
         Z *= self.chunk_size
-        self.leafnode = LeafNode(
+        self.leafnode = Node(
             quad= [
                 (x, -1, z),
                 (X, -1, z),
                 (X, -1, Z),
                 (x, -1, Z)
             ],
-            segments=64,
             parent=None,
             planet=None,
             renderer=self.renderer,
             game=self.game
         )
-        self.game.generation_queue.append(self.leafnode)
         self.nodes[(_x, _z)] = self.leafnode
         
     def generate(self):
@@ -41,7 +39,7 @@ class LoD:
             for z in range(-self.render_distance, self.render_distance+1):
                 self.generate_chunk(x, z)
                 
-    def on_drawcall(self):
+    def update(self):
         player_position = self.player.position
         player_position = (-player_position[0] // self.chunk_size, -player_position[2] // self.chunk_size)
         _nodes = []
@@ -58,3 +56,6 @@ class LoD:
                 to_delete.append(node)
         for node in to_delete:
             del self.nodes[node]
+        
+        for node in self.nodes:
+            self.nodes[node].update()
