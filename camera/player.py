@@ -6,7 +6,10 @@ from OpenGL.GL import *
 
 class Player(object):
 
-    def __init__(self, position=[0, -1024, 0], rotation=[0, 0, 0], planet=None):
+    def __init__(self,
+                 position=[0, -1024, 0],
+                 rotation=[0, 0, 0],
+                 planet=None):
         self.position = position
         self.rotation = rotation
         self.planet = planet
