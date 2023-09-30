@@ -189,10 +189,12 @@ class Node(object):
             
         res = None
         for result in self.game.namespace.generated_chunks:
-            if result == self.children["unified"].uuid:
+            if result["mesh"] == self.children["unified"].uuid:
                 self.game.namespace.generated_chunks.remove(result)
                 res = result
-        if res: self.children["unified"].generated = True
+        if res: 
+            self.children["unified"].generated = True
+            self.position = res["average_position"]
         
         try:
             if "split" in self.children and self.children_generated:

@@ -90,7 +90,8 @@ class Game(object):
             color = [random.random() for i in range(3)]
             for i in range(divisions):
                 new_verts += [tesselate_partial(quad, segments, divisions, i)]
-
+            pos_sum = [0, 0, 0]
+            pos_len = 0
             for _new_verts in new_verts:
                 colors = []
                 for i in range(len(_new_verts)):
@@ -100,7 +101,7 @@ class Game(object):
                     y = v[1] - CENTER[1]
                     z = v[2] - CENTER[2]
 
-                    noiseval = fractal_noise((x, y, z))
+                    noiseval = fractal_noise((x/10, y/10, z/10))
                     length = math.sqrt(x**2 + y**2 + z**2) + noiseval
 
                     x = x / length * RADIUS
@@ -123,7 +124,17 @@ class Game(object):
                     "mesh": item["mesh"],
                     "datafile": file
                 })
-            namespace.generated_chunks.append(item["mesh"])
+                # Calculate the average position of the vertices
+                for vert in _new_verts:
+                    pos_sum[0] += vert[0]
+                    pos_sum[1] += vert[1]
+                    pos_sum[2] += vert[2]
+                    pos_len += 1
+                
+            namespace.generated_chunks.append(({
+                "mesh": item["mesh"],
+                "average_position": (pos_sum[0] / pos_len, pos_sum[1] / pos_len, pos_sum[2] / pos_len)
+            }))
                 
     def terminate(self):
         """
