@@ -1,7 +1,9 @@
 # imports
 import numpy as np
 from OpenGL.arrays import vbo
-VBO_SIZE = (32**3)*3 # 64 is the n_segments in the leafnode class
+
+VBO_SIZE = (32**3) * 3  # 64 is the n_segments in the leafnode class
+
 
 class Buffer:
     """
@@ -15,7 +17,11 @@ class Buffer:
         Initializes the buffer.
         """
         self.id = id
-        self.buf = vbo.VBO(np.zeros(VBO_SIZE, dtype=np.float32), usage="GL_STATIC_DRAW", target="GL_ARRAY_BUFFER")
+        self.buf = vbo.VBO(
+            np.zeros(VBO_SIZE, dtype=np.float32),
+            usage="GL_STATIC_DRAW",
+            target="GL_ARRAY_BUFFER",
+        )
         self.max_idx = 0
 
     def modify(self, data, offset=-1):
