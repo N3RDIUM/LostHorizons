@@ -70,6 +70,7 @@ class Renderer(object):
             self.buffers[id]["colors"].modify(colors)
         except KeyError: pass
         os.remove(result["datafile"])
+        os.remove(result["datafile"] + ".lock")
 
     def update(self):
         """

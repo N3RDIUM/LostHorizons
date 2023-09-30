@@ -5,13 +5,13 @@ from core.renderer import Renderer
 from camera.player import Player
 from core.tesselate import tesselate_partial
 from core.fractalnoise import fractal_noise
-from planets.twod_lod import LoD
+from planets.planet import LoDPlanet as LoD
 
 import filelock
 import json
 import random
 import uuid
-import time
+import math
 
 class Game(object):
     def __init__(self, window):
@@ -39,7 +39,7 @@ class Game(object):
                 multiprocessing.Process(target=self.process, args=(self.namespace,)))
             self.processes[i].start()
         
-        self.lod = LoD(self, 6)
+        self.lod = LoD(self)
         self.lod.generate()
         
         self.window.schedule_mainloop(self)
@@ -84,24 +84,32 @@ class Game(object):
             quad = tuple(item["quad"])
             segments = item["segments"]
             divisions = item["denominator"]
+            CENTER = item["planet_center"]
+            RADIUS = item["planet_radius"]
             new_verts = []
             color = [random.random() for i in range(3)]
             for i in range(divisions):
                 new_verts += [tesselate_partial(quad, segments, divisions, i)]
+
             for _new_verts in new_verts:
                 colors = []
                 for i in range(len(_new_verts)):
-                    noiseval = fractal_noise([
-                        _new_verts[i][0] / 10,
-                        _new_verts[i][1] / 10,
-                        _new_verts[i][2] / 10
-                    ])
-                    _new_verts[i] = (
-                        _new_verts[i][0],
-                        _new_verts[i][1] + noiseval * 4,
-                        _new_verts[i][2],
-                    )
+                    # Get the vector from the planet center to the vertex
+                    v = _new_verts[i]
+                    x = v[0] - CENTER[0]
+                    y = v[1] - CENTER[1]
+                    z = v[2] - CENTER[2]
+
+                    noiseval = fractal_noise((x, y, z))
+                    length = math.sqrt(x**2 + y**2 + z**2) + noiseval
+
+                    x = x / length * RADIUS
+                    y = y / length * RADIUS
+                    z = z / length * RADIUS
+
+                    _new_verts[i] = (x, y, z)
                     colors.extend((color[i] / 4 + (noiseval * 0.5 + 0.5)) for i in range(3))
+                    
                 verts_1d = [item for sublist in _new_verts for item in sublist]
                 file = f".datatrans/{item['mesh']}-{uuid.uuid4()}.json"
                 with filelock.FileLock(file + ".lock"):
@@ -147,5 +155,5 @@ class Game(object):
             
     def generate_thread(self):
         while not self.namespace.killed:
-            if len(self.generation_queue) > 0:
+            while len(self.generation_queue) > 0:
                 self.generation_queue.pop(0).generate()

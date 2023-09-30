@@ -41,6 +41,8 @@ class LeafNode(object):
             "quad": self.quad,
             "segments": self.segments,
             "denominator": 8,
+            "planet_center": self.planet.center,
+            "planet_radius": self.planet.radius
         })
             
     def delete(self):
@@ -69,6 +71,7 @@ class Node(object):
         self.planet = planet
         self.renderer = renderer
         self.game = game
+        self.id = str(uuid4())
         
         self.position = [
             (self.quad[0][0] + self.quad[1][0] + self.quad[2][0] +
@@ -197,7 +200,7 @@ class Node(object):
             else:
                 self.children["unified"].show()
         except KeyError: pass
-        
+
     def delete(self):
         """
         Delete the node along with all its children
