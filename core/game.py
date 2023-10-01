@@ -90,7 +90,7 @@ class Game(object):
                 new_verts += [tesselate_partial(quad, segments, divisions, i)]
             pos_sum = [0, 0, 0]
             pos_len = 0
-            texScale = 1 / 12
+            texScale = 1 / 16
             for _new_verts in new_verts:
                 colors = []
                 for i in range(len(_new_verts)):
@@ -100,7 +100,6 @@ class Game(object):
                     y = v[1] - CENTER[1]
                     z = v[2] - CENTER[2]
                     
-                    tex_noiseval = fractal_ridge_noise((x * texScale, y * texScale, z * texScale), seed=32786, octaves=4)
                     length = math.sqrt(x**2 + y**2 + z**2)
 
                     x = x / length * RADIUS
@@ -108,7 +107,8 @@ class Game(object):
                     z = z / length * RADIUS
                     
                     noiseval = fractal_noise((x/1000, y/1000, z/1000), seed=64, octaves=16)
-                    length = math.sqrt(x**2 + y**2 + z**2) + noiseval * 100
+                    tex_noiseval = fractal_ridge_noise((x * texScale, y * texScale, z * texScale), seed=32786, octaves=4)
+                    length = math.sqrt(x**2 + y**2 + z**2) + noiseval * 10
                     
                     x = x / length * RADIUS
                     y = y / length * RADIUS

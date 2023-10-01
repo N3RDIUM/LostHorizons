@@ -43,7 +43,7 @@ class LeafNode(object):
             "mesh": self.uuid,
             "quad": self.quad,
             "segments": self.segments,
-            "denominator": 4,
+            "denominator": 2,
             "planet_center": self.planet.center,
             "planet_radius": self.planet.radius
         })
@@ -187,8 +187,9 @@ class Node(object):
             position = self.position
             player_pos = [-player.position[0], -player.position[1], -player.position[2]]
             distance = math.dist(player_pos, position)
+            size = self.size * self.level
             # If the player is within the node's size * 2, split the node
-            if distance < self.size and "split" not in self.children:
+            if distance < size and "split" not in self.children:
                 self.generate_split()
                 thread = threading.Thread(target=self.wait_and_hide)
                 thread.start()
@@ -250,9 +251,9 @@ class Node(object):
         Wait for a bit and hide the node.
         """
         while not self.children_generated:
-            time.sleep(0.1)
+            time.sleep(1/60)
         try:
             while not self.splitchildren_generated:
-                time.sleep(0.1)
+                time.sleep(1/60)
             self.children["unified"].hide()
         except KeyError: self.children["unified"].show()
