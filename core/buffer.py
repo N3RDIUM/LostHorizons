@@ -1,7 +1,7 @@
 # imports
 import numpy as np
 from OpenGL.arrays import vbo
-VBO_SIZE = (32**3)*3 # 64 is the n_segments in the leafnode class
+VBO_SIZE = 9360*12 # 32 is the n_segments in the leafnode class
 
 class Buffer:
     """

@@ -1,5 +1,7 @@
 from uuid import uuid4
 import math
+import threading
+import time
 
 def midpoint(v1, v2):
     x = (v1[0] + v2[0]) / 2
@@ -12,7 +14,7 @@ class LeafNode(object):
     def __init__(
         self,
         quad,
-        segments = 32,
+        segments = 48,
         parent = None,
         planet = None,
         renderer = None,
@@ -29,6 +31,7 @@ class LeafNode(object):
         self.game = game
         self.uuid = str(uuid4())
         self.generated = False
+        self.expected_verts = 49920 / 64 * segments
         
     def generate(self):
         """
@@ -40,7 +43,7 @@ class LeafNode(object):
             "mesh": self.uuid,
             "quad": self.quad,
             "segments": self.segments,
-            "denominator": 8,
+            "denominator": 4,
             "planet_center": self.planet.center,
             "planet_radius": self.planet.radius
         })
@@ -61,7 +64,8 @@ class Node(object):
         parent = None,
         planet = None,
         renderer = None,
-        game = None
+        game = None,
+        level = 1
     ):  
         """
         My go at a QuadTree node implementation.
@@ -72,6 +76,7 @@ class Node(object):
         self.renderer = renderer
         self.game = game
         self.id = str(uuid4())
+        self.level = level
         
         self.position = [
             (self.quad[0][0] + self.quad[1][0] + self.quad[2][0] +
@@ -136,28 +141,32 @@ class Node(object):
             parent=self,
             planet=self.planet,
             renderer=self.renderer,
-            game=self.game
+            game=self.game,
+            level=self.level + 1
         )
         node2 = Node(
             quad=quad2,
             parent=self,
             planet=self.planet,
             renderer=self.renderer,
-            game=self.game
+            game=self.game,
+            level=self.level + 1
         )
         node3 = Node(
             quad=quad3,
             parent=self,
             planet=self.planet,
             renderer=self.renderer,
-            game=self.game
+            game=self.game,
+            level=self.level + 1
         )
         node4 = Node(
             quad=quad4,
             parent=self,
             planet=self.planet,
             renderer=self.renderer,
-            game=self.game
+            game=self.game,
+            level=self.level + 1
         )
 
         # Add the nodes to the children list
@@ -181,6 +190,8 @@ class Node(object):
             # If the player is within the node's size * 2, split the node
             if distance < self.size and "split" not in self.children:
                 self.generate_split()
+                thread = threading.Thread(target=self.wait_and_hide)
+                thread.start()
             elif distance > self.size and "split" in self.children:
                 self.generate_unified()
                 for child in self.children["split"]:
@@ -194,12 +205,15 @@ class Node(object):
                 res = result
         if res: 
             self.children["unified"].generated = True
+            self.children["unified"].expected_verts = res["expected_verts"]
             self.position = res["average_position"]
-        
+            
+        if "split" in self.children:
+            for child in self.children["split"]:
+                child.update()
+                
         try:
-            if "split" in self.children and self.children_generated:
-                self.children["unified"].hide()
-            else:
+            if not "split" in self.children and self.children_generated:
                 self.children["unified"].show()
         except KeyError: pass
 
@@ -225,3 +239,20 @@ class Node(object):
                 if not child.children["unified"].generated:
                     return False
             return True
+    
+    @property 
+    def splitchildren_generated(self):
+        values = [len(self.game.renderer.storages[child.children["unified"].uuid].vertices) >= child.children["unified"].expected_verts for child in self.children["split"]]
+        return all(values)
+
+    def wait_and_hide(self):
+        """
+        Wait for a bit and hide the node.
+        """
+        while not self.children_generated:
+            time.sleep(0.1)
+        try:
+            while not self.splitchildren_generated:
+                time.sleep(0.1)
+            self.children["unified"].hide()
+        except KeyError: self.children["unified"].show()

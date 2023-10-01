@@ -4,12 +4,11 @@ import threading
 from core.renderer import Renderer
 from camera.player import Player
 from core.tesselate import tesselate_partial
-from core.fractalnoise import fractal_noise
+from core.fractalnoise import fractal_noise, fractal_ridge_noise
 from planets.planet import LoDPlanet as LoD
 
 import filelock
 import json
-import random
 import uuid
 import math
 
@@ -87,11 +86,11 @@ class Game(object):
             CENTER = item["planet_center"]
             RADIUS = item["planet_radius"]
             new_verts = []
-            color = [random.random() for i in range(3)]
             for i in range(divisions):
                 new_verts += [tesselate_partial(quad, segments, divisions, i)]
             pos_sum = [0, 0, 0]
             pos_len = 0
+            texScale = 1 / 12
             for _new_verts in new_verts:
                 colors = []
                 for i in range(len(_new_verts)):
@@ -100,16 +99,23 @@ class Game(object):
                     x = v[0] - CENTER[0]
                     y = v[1] - CENTER[1]
                     z = v[2] - CENTER[2]
+                    
+                    tex_noiseval = fractal_ridge_noise((x * texScale, y * texScale, z * texScale), seed=32786, octaves=4)
+                    length = math.sqrt(x**2 + y**2 + z**2)
 
-                    noiseval = fractal_noise((x/10, y/10, z/10))
-                    length = math.sqrt(x**2 + y**2 + z**2) + noiseval
-
+                    x = x / length * RADIUS
+                    y = y / length * RADIUS
+                    z = z / length * RADIUS
+                    
+                    noiseval = fractal_noise((x/1000, y/1000, z/1000), seed=64, octaves=16)
+                    length = math.sqrt(x**2 + y**2 + z**2) + noiseval * 100
+                    
                     x = x / length * RADIUS
                     y = y / length * RADIUS
                     z = z / length * RADIUS
 
                     _new_verts[i] = (x, y, z)
-                    colors.extend((color[i] / 4 + (noiseval * 0.5 + 0.5)) for i in range(3))
+                    colors.extend(((tex_noiseval * 0.5 + 0.25)) for i in range(3))
                     
                 verts_1d = [item for sublist in _new_verts for item in sublist]
                 file = f".datatrans/{item['mesh']}-{uuid.uuid4()}.json"
@@ -133,7 +139,8 @@ class Game(object):
                 
             namespace.generated_chunks.append(({
                 "mesh": item["mesh"],
-                "average_position": (pos_sum[0] / pos_len, pos_sum[1] / pos_len, pos_sum[2] / pos_len)
+                "average_position": (pos_sum[0] / pos_len, pos_sum[1] / pos_len, pos_sum[2] / pos_len),
+                "expected_verts": pos_len * 2
             }))
                 
     def terminate(self):
@@ -166,5 +173,6 @@ class Game(object):
             
     def generate_thread(self):
         while not self.namespace.killed:
-            while len(self.generation_queue) > 0:
+            try:
                 self.generation_queue.pop(0).generate()
+            except IndexError: pass
