@@ -11,6 +11,8 @@ import filelock
 import json
 import uuid
 import math
+import time
+import random
 
 class Game(object):
     def __init__(self, window):
@@ -79,6 +81,7 @@ class Game(object):
         Handle a queue item.
         """
         if item["task"] == "tesselate_full":
+            t = time.time()
             # Vertex calculations
             quad = tuple(item["quad"])
             segments = item["segments"]
@@ -91,6 +94,8 @@ class Game(object):
             pos_sum = [0, 0, 0]
             pos_len = 0
             texScale = 1 / 16
+            out = []
+            color = (random.random() / 4, random.random() / 4, random.random() / 4)
             for _new_verts in new_verts:
                 colors = []
                 for i in range(len(_new_verts)):
@@ -115,7 +120,7 @@ class Game(object):
                     z = z / length * RADIUS
 
                     _new_verts[i] = (x, y, z)
-                    colors.extend(((tex_noiseval * 0.5 + 0.25)) for i in range(3))
+                    colors.extend(((color[i] + tex_noiseval * 0.5 + 0.25)) for i in range(3))
                     
                 verts_1d = [item for sublist in _new_verts for item in sublist]
                 file = f".datatrans/{item['mesh']}-{uuid.uuid4()}.json"
@@ -125,7 +130,7 @@ class Game(object):
                             "vertices": list(verts_1d).copy(),
                             "colors": list(colors).copy()
                         }, f)
-                namespace.result_queue.put({
+                out.append({
                     "type": "buffer_mod",
                     "mesh": item["mesh"],
                     "datafile": file
@@ -136,12 +141,14 @@ class Game(object):
                     pos_sum[1] += vert[1]
                     pos_sum[2] += vert[2]
                     pos_len += 1
-                
-            namespace.generated_chunks.append(({
-                "mesh": item["mesh"],
-                "average_position": (pos_sum[0] / pos_len, pos_sum[1] / pos_len, pos_sum[2] / pos_len),
-                "expected_verts": pos_len * 2
-            }))
+        for item in out:
+            namespace.result_queue.put(item)
+        namespace.generated_chunks.append(({
+            "mesh": item["mesh"],
+            "average_position": (pos_sum[0] / pos_len, pos_sum[1] / pos_len, pos_sum[2] / pos_len),
+            "expected_verts": pos_len * 2,
+            "datafiles": out
+        }))
                 
     def terminate(self):
         """

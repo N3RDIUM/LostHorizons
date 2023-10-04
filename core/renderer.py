@@ -82,7 +82,8 @@ class Renderer(object):
                 if item["type"] == "buffer_mod":
                     self.update_storage(item["mesh"], item)
                     self.parent.result_queue.pop(i)
-            except IndexError: self.update()
+                    break
+            except IndexError: break
 
     def draw_storage(self, id):
         """

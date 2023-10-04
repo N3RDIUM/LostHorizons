@@ -14,7 +14,7 @@ class LeafNode(object):
     def __init__(
         self,
         quad,
-        segments = 48,
+        segments = 64,
         parent = None,
         planet = None,
         renderer = None,
@@ -43,7 +43,7 @@ class LeafNode(object):
             "mesh": self.uuid,
             "quad": self.quad,
             "segments": self.segments,
-            "denominator": 2,
+            "denominator": self.segments // 16,
             "planet_center": self.planet.center,
             "planet_radius": self.planet.radius
         })
@@ -186,7 +186,7 @@ class Node(object):
             player = self.game.player
             position = self.position
             player_pos = [-player.position[0], -player.position[1], -player.position[2]]
-            distance = math.dist(player_pos, position)
+            distance = math.dist(player_pos, position) * self.level * 2
             size = self.size * self.level
             # If the player is within the node's size * 2, split the node
             if distance < size and "split" not in self.children:
@@ -208,6 +208,7 @@ class Node(object):
             self.children["unified"].generated = True
             self.children["unified"].expected_verts = res["expected_verts"]
             self.position = res["average_position"]
+            # self.game.result_queue.extend(res["datafiles"])
             
         if "split" in self.children:
             for child in self.children["split"]:
