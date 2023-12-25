@@ -6,14 +6,15 @@ import threading
 import time
 import uuid
 
+import filelock
+import numba
+
 from camera.player import Player
 from core.fractalnoise import fractal_noise, fractal_ridge_noise
 from core.renderer import Renderer
 from core.tesselate import tesselate_partial
 from planets.planet import LoDPlanet as LoD
 
-import filelock
-import numba
 
 class Game:
     def __init__(self, window):
@@ -131,34 +132,37 @@ class Game:
 
                 verts_1d = [item for sublist in _new_verts for item in sublist]
                 file = f".datatrans/{item['mesh']}-{uuid.uuid4()}.json"
-                
+
                 with filelock.FileLock(file + ".lock") and open(file, "w") as f:
-                    json.dump({
-                        "vertices": list(verts_1d).copy(),
-                        "colors": list(colors).copy()
-                    }, f)
-                        
-                out.append({
-                    "type": "buffer_mod",
-                    "mesh": item["mesh"],
-                    "datafile": file
-                })
-                
+                    json.dump(
+                        {
+                            "vertices": list(verts_1d).copy(),
+                            "colors": list(colors).copy(),
+                        },
+                        f,
+                    )
+
+                out.append(
+                    {"type": "buffer_mod", "mesh": item["mesh"], "datafile": file}
+                )
+
                 for vert in _new_verts:
                     pos_sum = [pos_sum[j] + vert[j] for j in range(3)]
                     pos_len += 1
             print(f"Took: {time.time() - t}s")
-            
+
             for _item in out:
                 namespace.result_queue.put(_item)
-                
-            namespace.generated_chunks.append({
-                "mesh": item["mesh"],
-                "average_position": tuple(pos_sum[j] / pos_len for j in range(3)),
-                "expected_verts": pos_len * 2,
-                "datafiles": list(out)  # Convert the generator to a list
-            })
-        
+
+            namespace.generated_chunks.append(
+                {
+                    "mesh": item["mesh"],
+                    "average_position": tuple(pos_sum[j] / pos_len for j in range(3)),
+                    "expected_verts": pos_len * 2,
+                    "datafiles": list(out),  # Convert the generator to a list
+                }
+            )
+
     def terminate(self):
         """
         Terminate all processes.

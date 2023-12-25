@@ -11,6 +11,7 @@ def midpoint(v1, v2):
 
     return [x, y, z]
 
+
 class LeafNode:
     def __init__(
         self, quad, segments=64, parent=None, planet=None, renderer=None, game=None
@@ -50,10 +51,14 @@ class LeafNode:
         Delete this chunk.
         """
         self.renderer.delete_later(self.uuid)
-        
-    def show(self): self.renderer.show(self.uuid)
-    def hide(self): self.renderer.hide(self.uuid)
-        
+
+    def show(self):
+        self.renderer.show(self.uuid)
+
+    def hide(self):
+        self.renderer.hide(self.uuid)
+
+
 class Node:
     def __init__(
         self, quad, parent=None, planet=None, renderer=None, game=None, level=1
@@ -200,7 +205,7 @@ class Node:
             self.children["unified"].generated = True
             self.children["unified"].expected_verts = res["expected_verts"]
             self.position = res["average_position"]
-            
+
         if "split" in self.children:
             for child in self.children["split"]:
                 child.update()
@@ -226,15 +231,16 @@ class Node:
     def children_generated(self):
         """Get if all children were generated"""
         ret = self.children["unified"].generated
-        if not ret: return False
+        if not ret:
+            return False
         if "split" not in self.children:
             return True
         for child in self.children["split"]:
             if not child.children["unified"].generated:
                 return False
         return True
-    
-    @property 
+
+    @property
     def splitchildren_generated(self):
         values = [
             len(self.game.renderer.storages[child.children["unified"].uuid].vertices)
