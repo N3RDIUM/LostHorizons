@@ -1,5 +1,4 @@
-import opensimplex
-_opensimplex = opensimplex.OpenSimplex(0)
+import noise
 
 def fractal_noise(point, seed, octaves):
     noiseSum = 0
@@ -7,7 +6,7 @@ def fractal_noise(point, seed, octaves):
     frequency = 1
     
     for i in range(octaves):
-        noiseSum += _opensimplex.noise4(
+        noiseSum += noise.snoise4(
             point[0] * frequency,
             point[1] * frequency,
             point[2] * frequency,

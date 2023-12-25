@@ -52,8 +52,8 @@ def tesselate_partial(quad, segments=100, denominator=4, numerator=1):
     new_verts = []
     yrange_start = int(segments // denominator * numerator)
     yrange_end = int(segments // denominator * (numerator + 1))    
-    for y in range(yrange_start, yrange_end):
-        for x in range(segments + 1):
+    for y in numba.prange(yrange_start, yrange_end):
+        for x in numba.prange(segments + 1):
             # Calculate the point and add it to the list
             point1 = (
                 p1[0] + (p2[0] - p1[0]) * x / segments + (p4[0] - p1[0]) * y / segments,
