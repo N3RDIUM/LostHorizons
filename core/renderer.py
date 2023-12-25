@@ -22,6 +22,7 @@ glEnable(GL_ARRAY_BUFFER)
 glEnableClientState(GL_VERTEX_ARRAY)
 glEnableClientState(GL_COLOR_ARRAY)
 
+
 class Renderer:
     def __init__(self, parent):
         """
