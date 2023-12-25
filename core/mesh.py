@@ -5,7 +5,6 @@ from OpenGL.GL import *
 
 
 class Mesh:
-
     def __init__(self, vertices, indices, normals=[], uvs=[]):
         self.vertices = vertices
         self.indices = indices

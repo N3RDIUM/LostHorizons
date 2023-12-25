@@ -5,7 +5,6 @@ from OpenGL.GL import *
 
 
 class Player(object):
-
     def __init__(self, position=[0, 0, -100], rotation=[0, 0, 0], planet=None):
         self.position = position
         self.rotation = rotation
@@ -17,31 +16,23 @@ class Player(object):
     def update(self, window):
         # move forward
         if glfw.get_key(window, glfw.KEY_W) == glfw.PRESS:
-            self.position[0] -= sin(radians(
-                self.rotation[1])) * 0.1 * self.speed
-            self.position[2] += cos(radians(
-                self.rotation[1])) * 0.1 * self.speed
+            self.position[0] -= sin(radians(self.rotation[1])) * 0.1 * self.speed
+            self.position[2] += cos(radians(self.rotation[1])) * 0.1 * self.speed
 
         # move backward
         if glfw.get_key(window, glfw.KEY_S) == glfw.PRESS:
-            self.position[0] += sin(radians(
-                self.rotation[1])) * 0.1 * self.speed
-            self.position[2] -= cos(radians(
-                self.rotation[1])) * 0.1 * self.speed
+            self.position[0] += sin(radians(self.rotation[1])) * 0.1 * self.speed
+            self.position[2] -= cos(radians(self.rotation[1])) * 0.1 * self.speed
 
         # strafe left
         if glfw.get_key(window, glfw.KEY_A) == glfw.PRESS:
-            self.position[0] -= sin(
-                radians(self.rotation[1] - 90)) * 0.1 * self.speed
-            self.position[2] += cos(
-                radians(self.rotation[1] - 90)) * 0.1 * self.speed
+            self.position[0] -= sin(radians(self.rotation[1] - 90)) * 0.1 * self.speed
+            self.position[2] += cos(radians(self.rotation[1] - 90)) * 0.1 * self.speed
 
         # strafe right
         if glfw.get_key(window, glfw.KEY_D) == glfw.PRESS:
-            self.position[0] -= sin(
-                radians(self.rotation[1] + 90)) * 0.1 * self.speed
-            self.position[2] += cos(
-                radians(self.rotation[1] + 90)) * 0.1 * self.speed
+            self.position[0] -= sin(radians(self.rotation[1] + 90)) * 0.1 * self.speed
+            self.position[2] += cos(radians(self.rotation[1] + 90)) * 0.1 * self.speed
 
         # go up
         if glfw.get_key(window, glfw.KEY_SPACE) == glfw.PRESS:

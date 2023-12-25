@@ -9,5 +9,5 @@ class BufferDataStorage(object):
 
     def has_changed(self, other_storage):
         return hash(frozenset(self.vertices)) != hash(
-            frozenset(other_storage.vertices)) or hash(frozenset(
-                self.colors)) != hash(frozenset(other_storage.colors))
+            frozenset(other_storage.vertices)
+        ) or hash(frozenset(self.colors)) != hash(frozenset(other_storage.colors))

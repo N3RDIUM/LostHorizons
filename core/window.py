@@ -3,13 +3,25 @@ import threading
 import time
 
 import glfw
-from OpenGL.GL import (GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_MODELVIEW,
-                       GL_PROJECTION, glClear, glLoadIdentity, glMatrixMode,
-                       glViewport, glEnable, GL_DEPTH_TEST, GL_CULL_FACE, glClearColor)
+from OpenGL.GL import (
+    GL_COLOR_BUFFER_BIT,
+    GL_CULL_FACE,
+    GL_DEPTH_BUFFER_BIT,
+    GL_DEPTH_TEST,
+    GL_MODELVIEW,
+    GL_PROJECTION,
+    glClear,
+    glClearColor,
+    glEnable,
+    glLoadIdentity,
+    glMatrixMode,
+    glViewport,
+)
 from OpenGL.GLU import gluPerspective
 
 from .logger import logging as logger
 from .text import display_debug
+
 ##################################################
 # Errors                                         #
 ##################################################
@@ -43,6 +55,7 @@ class GLFWInitError(Exception):
 # Window class                                   #
 ##################################################
 
+
 class Window:
     """
     Window
@@ -60,8 +73,13 @@ class Window:
         if not glfw.init():
             logger.fatal("Window", "GLFW failed to initialize!")
             raise GLFWInitError("GLFW failed to initialize!")
-        self.window = glfw.create_window(kwargs.get("width", 800), kwargs.get(
-            "height", 500), kwargs.get("title", "Lost Horizons"), None, None)  # Create the GLFW window.
+        self.window = glfw.create_window(
+            kwargs.get("width", 800),
+            kwargs.get("height", 500),
+            kwargs.get("title", "Lost Horizons"),
+            None,
+            None,
+        )  # Create the GLFW window.
         # Make the window the current context.
         logger.info("[Window] Setting up window...")
         glfw.make_context_current(self.window)
@@ -91,8 +109,7 @@ class Window:
 
         :return: The window size.
         """
-        width, height = glfw.get_window_size(
-            self.window)  # Get the window size.
+        width, height = glfw.get_window_size(self.window)  # Get the window size.
         return width, height  # Return the window size.
 
     def schedule_mainloop(self, obj):
@@ -101,8 +118,7 @@ class Window:
 
         :param obj: The object to schedule.
         """
-        self._scheduled_main.append(
-            obj)  # Append the object to the scheduled objects.
+        self._scheduled_main.append(obj)  # Append the object to the scheduled objects.
 
     def schedule_shared_context(self, obj):
         """
@@ -110,18 +126,18 @@ class Window:
 
         :param obj: The object to schedule.
         """
-        self._scheduled_sc.append(
-            obj)  # Append the object to the scheduled objects.
+        self._scheduled_sc.append(obj)  # Append the object to the scheduled objects.
 
     def shared_context(self):
         """
         Function for the shared context.
         """
         glfw.init()  # Initialize GLFW.
-        glfw.window_hint(
-            glfw.VISIBLE, glfw.FALSE)  # Make the window invisible.
+        # Make the window invisible.
+        glfw.window_hint(glfw.VISIBLE, glfw.FALSE)
         window2 = glfw.create_window(
-            500, 500, "Shared Context", None, self.window)  # Create the shared context window.
+            500, 500, "Shared Context", None, self.window
+        )  # Create the shared context window.
         # Make the shared context window the current context.
         glfw.make_context_current(window2)
         self.event.set()  # Let the main thread continue.
@@ -151,18 +167,27 @@ class Window:
 
             for obj in self._scheduled_main:  # Loop through the scheduled objects.
                 obj.drawcall()  # Draw the object.
-            
+
             self.fps = 1 / (self.current_frame - self.previous_frame)
             self.smooth_fps_samples.append(self.fps)
-            self.smooth_fps = sum(self.smooth_fps_samples) / len(self.smooth_fps_samples)
-            display = self.logs.copy() + [str(self.fps) + " FPS (exact)", str(int(self.smooth_fps)) + " FPS (smooth, 64 samples)"] + [f"LostHorizons"]
+            self.smooth_fps = sum(self.smooth_fps_samples) / len(
+                self.smooth_fps_samples
+            )
+            display = (
+                self.logs.copy()
+                + [
+                    str(self.fps) + " FPS (exact)",
+                    str(int(self.smooth_fps)) + " FPS (smooth, 64 samples)",
+                ]
+                + [f"LostHorizons"]
+            )
             display_debug((8, 8), display)
-                
+
             # GLFW stuff.
             glfw.poll_events()
             glfw.swap_buffers(self.window)
             self.previous_frame = self.current_frame
-            
+
     def setup_3d(self):
         """
         Setup 3D.
