@@ -55,8 +55,7 @@ class GLFWInitError(Exception):
 # Window class                                   #
 ##################################################
 
-
-class Window:
+class GameWindow:
     """
     Window
 
@@ -170,17 +169,8 @@ class Window:
 
             self.fps = 1 / (self.current_frame - self.previous_frame)
             self.smooth_fps_samples.append(self.fps)
-            self.smooth_fps = sum(self.smooth_fps_samples) / len(
-                self.smooth_fps_samples
-            )
-            display = (
-                self.logs.copy()
-                + [
-                    str(self.fps) + " FPS (exact)",
-                    str(int(self.smooth_fps)) + " FPS (smooth, 64 samples)",
-                ]
-                + [f"LostHorizons"]
-            )
+            self.smooth_fps = sum(self.smooth_fps_samples) / len(self.smooth_fps_samples)
+            display = self.logs.copy() + [str(self.fps) + " FPS (exact)", str(int(self.smooth_fps)) + " FPS (smooth, 64 samples)"] + ["LostHorizons"]
             display_debug((8, 8), display)
 
             # GLFW stuff.

@@ -5,7 +5,7 @@ import glfw
 from OpenGL.GLUT import glutInit
 
 from core.game import Game
-from core.window import Window
+from core.window import GameWindow
 
 
 def initialize():
@@ -14,11 +14,9 @@ def initialize():
     """
     if not bool(glutInit):
         raise Exception("GLUT not found! Are you sure you have freeglut installed?")
-    else:
-        glutInit()
+    glutInit()
     if not glfw.init():
         raise Exception("GLFW failed to initialize!")
-
     try:
         shutil.rmtree(".datatrans")
     except FileNotFoundError:
@@ -30,7 +28,7 @@ def create_window():
     """
     Create a windowed mode window and its OpenGL context
     """
-    window = Window(width=1600, height=900, title="Lost Horizons")
+    window = GameWindow(width=1600, height=900, title="Lost Horizons")
     return window
 
 

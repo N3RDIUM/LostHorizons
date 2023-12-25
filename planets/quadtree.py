@@ -11,8 +11,7 @@ def midpoint(v1, v2):
 
     return [x, y, z]
 
-
-class LeafNode(object):
+class LeafNode:
     def __init__(
         self, quad, segments=64, parent=None, planet=None, renderer=None, game=None
     ):
@@ -51,15 +50,11 @@ class LeafNode(object):
         Delete this chunk.
         """
         self.renderer.delete_later(self.uuid)
-
-    def show(self):
-        self.renderer.show(self.uuid)
-
-    def hide(self):
-        self.renderer.hide(self.uuid)
-
-
-class Node(object):
+        
+    def show(self): self.renderer.show(self.uuid)
+    def hide(self): self.renderer.hide(self.uuid)
+        
+class Node:
     def __init__(
         self, quad, parent=None, planet=None, renderer=None, game=None, level=1
     ):
@@ -205,14 +200,13 @@ class Node(object):
             self.children["unified"].generated = True
             self.children["unified"].expected_verts = res["expected_verts"]
             self.position = res["average_position"]
-            # self.game.result_queue.extend(res["datafiles"])
-
+            
         if "split" in self.children:
             for child in self.children["split"]:
                 child.update()
 
         try:
-            if not "split" in self.children and self.children_generated:
+            if "split" not in self.children and self.children_generated:
                 self.children["unified"].show()
         except KeyError:
             pass
@@ -222,7 +216,7 @@ class Node(object):
         Delete the node along with all its children
         """
         for child in self.children.values():
-            if type(child) == LeafNode:
+            if child is LeafNode:
                 child.delete()
             else:
                 for _child in child:
@@ -232,17 +226,15 @@ class Node(object):
     def children_generated(self):
         """Get if all children were generated"""
         ret = self.children["unified"].generated
-        if not ret:
-            return False
-        else:
-            if "split" not in self.children:
-                return True
-            for child in self.children["split"]:
-                if not child.children["unified"].generated:
-                    return False
+        if not ret: return False
+        if "split" not in self.children:
             return True
-
-    @property
+        for child in self.children["split"]:
+            if not child.children["unified"].generated:
+                return False
+        return True
+    
+    @property 
     def splitchildren_generated(self):
         values = [
             len(self.game.renderer.storages[child.children["unified"].uuid].vertices)

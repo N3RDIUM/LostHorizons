@@ -1,4 +1,4 @@
-class BufferDataStorage(object):
+class BufferDataStorage:
     def __init__(self):
         """
         BufferDataStorage

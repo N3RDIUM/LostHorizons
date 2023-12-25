@@ -22,8 +22,7 @@ glEnable(GL_ARRAY_BUFFER)
 glEnableClientState(GL_VERTEX_ARRAY)
 glEnableClientState(GL_COLOR_ARRAY)
 
-
-class Renderer(object):
+class Renderer:
     def __init__(self, parent):
         """
         Renderer
@@ -78,9 +77,8 @@ class Renderer(object):
         """
         Update the buffers.
         """
-        for i in range(len(self.parent.result_queue)):
+        for i, item in enumerate(self.parent.result_queue):
             try:
-                item = self.parent.result_queue[i]
                 if item["type"] == "buffer_mod":
                     self.update_storage(item["mesh"], item)
                     self.parent.result_queue.pop(i)
