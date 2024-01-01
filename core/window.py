@@ -8,7 +8,6 @@ from OpenGL.GL import (
     GL_DEPTH_TEST,
     GL_MODELVIEW,
     GL_PROJECTION,
-    glClear,
     glClearColor,
     glEnable,
     glLoadIdentity,

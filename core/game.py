@@ -42,6 +42,7 @@ class Game:
 
         self.lod = LoD(self)
         self.lod.generate()
+        self.player.planet = self.lod
 
         self.window.schedule_mainloop(self)
         self.window.schedule_shared_context(self)

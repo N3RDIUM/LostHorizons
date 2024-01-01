@@ -1,4 +1,4 @@
-from math import cos, radians, sin
+from math import cos, radians, sin, dist
 
 import glfw
 from OpenGL.GL import *
@@ -6,13 +6,13 @@ from OpenGL.GL import *
 
 class Player:
 
-    def __init__(self, position=[0, 0, -1024], rotation=[0, 0, 0], planet=None):
+    def __init__(self, position=[0, 0, -2048], rotation=[0, 0, 0], planet=None):
         self.position = position
         self.rotation = rotation
         self.planet = planet
         self.mouse_prev = glfw.get_cursor_pos(glfw.get_current_context())
-        self.speed_mlt = 64
-        self.speed = self.speed_mlt
+        self.default_speed = 8
+        self.speed = self.default_speed
 
     def update(self, window):
         # move forward
