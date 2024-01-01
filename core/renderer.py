@@ -131,15 +131,19 @@ class Renderer:
         Delete the specified storage.
         """
         try:
-            self.buffers[id]['vtx_shared_memory'].unlink()
-            self.buffers[id]['vtx_shared_memory'].close()
-            self.buffers[id]['clr_shared_memory'].unlink()
-            self.buffers[id]['clr_shared_memory'].close()
-            del self.buffers[id]['vtx_shared_memory']
-            del self.buffers[id]['clr_shared_memory']
+            try:
+                self.buffers[id]['vtx_shared_memory'].unlink()
+                self.buffers[id]['vtx_shared_memory'].close()
+                self.buffers[id]['clr_shared_memory'].unlink()
+                self.buffers[id]['clr_shared_memory'].close()
+                del self.buffers[id]['vtx_shared_memory']
+                del self.buffers[id]['clr_shared_memory']
+            except: pass
             del self.buffers[id]["show"]
             for buffer_type in self.buffers[id]:
-                self.buffers[id][buffer_type].delete()
+                try:
+                    self.buffers[id][buffer_type].delete()
+                except AttributeError: pass
             del self.buffers[id]
             del self.storages[id]
         except KeyError:
