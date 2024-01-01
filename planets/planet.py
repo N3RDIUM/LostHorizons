@@ -2,7 +2,7 @@ from planets.quadtree import Node
 
 
 class LoDPlanet:
-    def __init__(self, game, radius=64, position=[0, 0, 0]):
+    def __init__(self, game, radius=512, position=[0, 0, 0]):
         self.nodes = {}
         self.game = game
         self.renderer = game.renderer

@@ -1,12 +1,9 @@
-import json
 import math
 import multiprocessing
 from multiprocessing import shared_memory
 import numpy as np
 import random
 import threading
-import time
-import uuid
 
 from camera.player import Player
 from core.fractalnoise import fractal_noise, fractal_ridge_noise
@@ -14,7 +11,6 @@ from core.renderer import Renderer
 from core.tesselate import tesselate_partial
 from planets.planet import LoDPlanet as LoD
 
-import filelock
 import numba
 
 class Game:
@@ -96,8 +92,8 @@ class Game:
             ]
             pos_sum = [0, 0, 0]
             pos_len = 0
-            texScale = 1 / 16
-            color = (random.random() / 4, random.random() / 4, random.random() / 4)
+            texScale = RADIUS / 4
+            color = (0.25, 0.25, 0.25)
             
             vertices = []
             colors = []
@@ -114,19 +110,19 @@ class Game:
                         z / length * RADIUS,
                     ]
                     noiseval = fractal_noise(
-                        (x / 1000, y / 1000, z / 1000), seed=64, octaves=2
-                    ) - level / 1000
-                    tex_noiseval = fractal_ridge_noise(
-                        (x * texScale, y * texScale, z * texScale),
-                        seed=32786,
-                        octaves=2,
-                    )
-                    length = math.sqrt(x**2 + y**2 + z**2) + noiseval * 10
+                        (x / RADIUS, y / RADIUS, z / RADIUS), seed=64, octaves=8
+                    ) * 16
+                    length = math.sqrt(x**2 + y**2 + z**2) + noiseval * 10 - level / 1000
                     x, y, z = [
                         x / length * RADIUS,
                         y / length * RADIUS,
                         z / length * RADIUS,
                     ]
+                    tex_noiseval = fractal_ridge_noise(
+                        (x * texScale, y * texScale, z * texScale),
+                        seed=32786,
+                        octaves=8,
+                    )
                     _new_verts[i] = (x, y, z)
                     colors.extend(
                         (color[j] + tex_noiseval * 0.5 + 0.25) for j in range(3)

@@ -4,9 +4,7 @@ import time
 
 import glfw
 from OpenGL.GL import (
-    GL_COLOR_BUFFER_BIT,
     GL_CULL_FACE,
-    GL_DEPTH_BUFFER_BIT,
     GL_DEPTH_TEST,
     GL_MODELVIEW,
     GL_PROJECTION,
@@ -159,8 +157,6 @@ class GameWindow:
         while not glfw.window_should_close(self.window):  # Main loop.
             self.current_frame = time.time()
             # OpenGL stuff.
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-            glClear(GL_DEPTH_BUFFER_BIT)
             glClearColor(0.0, 0.0, 0.0, 1.0)
             self.setup_3d()
 
