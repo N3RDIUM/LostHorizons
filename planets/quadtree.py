@@ -216,7 +216,7 @@ class Node:
         Delete the node along with all its children
         """
         for child in self.children.values():
-            if child is LeafNode:
+            if type(child) == LeafNode:
                 child.delete()
             else:
                 for _child in child:

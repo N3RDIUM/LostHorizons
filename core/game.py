@@ -1,6 +1,8 @@
 import json
 import math
 import multiprocessing
+from multiprocessing import shared_memory
+import numpy as np
 import random
 import threading
 import time
@@ -94,13 +96,13 @@ class Game:
             pos_sum = [0, 0, 0]
             pos_len = 0
             texScale = 1 / 16
-            out = []
             color = (random.random() / 4, random.random() / 4, random.random() / 4)
+            
+            vertices = []
+            colors = []
 
-            t = time.time()
             for x in numba.prange(len(new_verts)):
                 _new_verts = new_verts[x]
-                colors = []
                 for i in numba.prange(len(_new_verts)):
                     v = _new_verts[i]
                     x, y, z = [v[j] - CENTER[j] for j in range(3)]
@@ -130,33 +132,37 @@ class Game:
                     )
 
                 verts_1d = [item for sublist in _new_verts for item in sublist]
-                file = f".datatrans/{item['mesh']}-{uuid.uuid4()}.json"
-                
-                with filelock.FileLock(file + ".lock") and open(file, "w") as f:
-                    json.dump({
-                        "vertices": list(verts_1d).copy(),
-                        "colors": list(colors).copy()
-                    }, f)
-                        
-                out.append({
-                    "type": "buffer_mod",
-                    "mesh": item["mesh"],
-                    "datafile": file
-                })
+                vertices.extend(verts_1d)
                 
                 for vert in _new_verts:
                     pos_sum = [pos_sum[j] + vert[j] for j in range(3)]
                     pos_len += 1
-            print(f"Took: {time.time() - t}s")
             
-            for _item in out:
-                namespace.result_queue.put(_item)
+            vtx_shared_memory = shared_memory.SharedMemory(name=f"buffer-{str(item['mesh'])}-vertices")
+            clr_shared_memory = shared_memory.SharedMemory(name=f"buffer-{str(item['mesh'])}-colors")
+            
+            vtx_data = np.asarray(vertices, dtype=np.float32)
+            clr_data = np.asarray(colors, dtype=np.float32)
+            
+            vtx = np.ndarray(vtx_data.shape, dtype=vtx_data.dtype, buffer=vtx_shared_memory.buf)
+            clr = np.ndarray(clr_data.shape, dtype=clr_data.dtype, buffer=clr_shared_memory.buf)
+            
+            vtx[:] = vtx_data[:]
+            clr[:] = clr_data[:]
+            
+            namespace.result_queue.put({
+                "type": "buffer_mod",
+                "mesh": item["mesh"],
+                "shape": {
+                    "vtx": vtx.shape,
+                    "clr": clr.shape
+                }
+            })
                 
             namespace.generated_chunks.append({
                 "mesh": item["mesh"],
                 "average_position": tuple(pos_sum[j] / pos_len for j in range(3)),
-                "expected_verts": pos_len * 2,
-                "datafiles": list(out)  # Convert the generator to a list
+                "expected_verts": pos_len * 2
             })
         
     def terminate(self):
