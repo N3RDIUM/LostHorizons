@@ -1,6 +1,4 @@
 import math
-import threading
-import time
 from uuid import uuid4
 
 
@@ -13,7 +11,7 @@ def midpoint(v1, v2):
 
 class LeafNode:
     def __init__(
-        self, quad, segments=64, parent=None, planet=None, renderer=None, game=None
+        self, quad, segments=128, parent=None, planet=None, renderer=None, game=None
     ):
         """
         LeafNode
@@ -26,7 +24,7 @@ class LeafNode:
         self.game = game
         self.uuid = str(uuid4())
         self.generated = False
-        self.expected_verts = 49920 / 64 * segments
+        self.expected_verts = 49920
 
     def generate(self):
         """
