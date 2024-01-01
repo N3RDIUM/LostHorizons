@@ -156,7 +156,11 @@ class Renderer:
         self.deletion_queue.append(id)
 
     def show(self, id):
-        self.buffers[id]["show"] = True
+        try:
+            self.buffers[id]["show"] = True
+        except KeyError: pass
 
     def hide(self, id):
-        self.buffers[id]["show"] = False
+        try:
+            self.buffers[id]["show"] = False
+        except KeyError: pass

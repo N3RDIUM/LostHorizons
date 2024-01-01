@@ -86,22 +86,29 @@ class Node:
         )
 
         self.children = {}
+        self.cached_leaf = None
         self.generate_unified()
+        self.state = "unified"
 
     def generate_unified(self):
         """
         Generate the node as a unified node, i.e. consisting of only one leaf node.
         """
-        new = LeafNode(
-            quad=self.quad,
-            parent=self.parent,
-            planet=self.planet,
-            renderer=self.renderer,
-            game=self.game,
-        )
-        self.game.generation_queue.append(new)
-        # Indexes: "unified": unified node and "split": [array of 4 nodes]
-        self.children["unified"] = new
+        if not self.cached_leaf:
+            new = LeafNode(
+                quad=self.quad,
+                parent=self.parent,
+                planet=self.planet,
+                renderer=self.renderer,
+                game=self.game,
+            )
+            self.game.generation_queue.append(new)
+            # Indexes: "unified": unified node and "split": [array of 4 nodes]
+            self.children["unified"] = new
+            self.cached_leaf = new
+        else:
+            self.children["unified"] = self.cached_leaf
+            self.children["unified"].show()
 
     def generate_split(self):
         """
@@ -172,22 +179,33 @@ class Node:
             for child in children:
                 child.update()
 
-        if self.children_generated:
-            # Get the player's distance from the center of the node
-            player = self.game.player
-            position = self.position
-            player_pos = [-player.position[0], -player.position[1], -player.position[2]]
-            distance = math.dist(player_pos, position) * self.level * 2
-            size = self.size * self.level
-            # If the player is within the node's size * 2, split the node
-            if distance < size and "split" not in self.children:
-                self.generate_split()
-                self.children['unified'].hide()
-            elif distance > size and "split" in self.children:
-                self.generate_unified()
-                for child in self.children['split']:
+        # Get the player's distance from the center of the node
+        player = self.game.player
+        position = self.position
+        player_pos = [-player.position[0], -player.position[1], -player.position[2]]
+        distance = math.dist(player_pos, position) * self.level * 2
+        size = self.size * self.level
+        # If the player is within the node's size * 2, split the node
+        if distance < size and "split" not in self.children:
+            self.generate_split()
+        elif distance > size and "unified" not in self.children:
+            self.generate_unified()
+        
+        if distance < size:
+            self.state = "split"
+        elif distance > size:
+            self.state = "unified"
+        
+        if self.splitchildren_generated and distance < size:
+            self.children['unified'].hide()
+            for child in self.children["split"]:
+                child.show()
+        elif self.unifiedchildren_generated and distance > size:
+            if "split" in self.children:
+                for child in self.children["split"]:
                     child.delete()
-                del self.children['split']
+                del self.children["split"]
+            self.children["unified"].show()
                 
         res = None
         for result in self.game.namespace.generated_chunks:
@@ -198,16 +216,6 @@ class Node:
             self.children["unified"].generated = True
             self.children["unified"].expected_verts = res["expected_verts"]
             self.position = res["average_position"]
-            
-        if "split" in self.children:
-            for child in self.children["split"]:
-                child.update()
-
-        try:
-            if "split" not in self.children and self.children_generated:
-                self.children["unified"].show()
-        except KeyError:
-            pass
 
     def delete(self):
         """
@@ -219,24 +227,37 @@ class Node:
             else:
                 for _child in child:
                     _child.delete()
-
-    @property
-    def children_generated(self):
-        """Get if all children were generated"""
-        ret = self.children["unified"].generated
-        if not ret: return False
-        if "split" not in self.children:
-            return True
-        for child in self.children["split"]:
-            if not child.children["unified"].generated:
-                return False
-        return True
     
     @property 
     def splitchildren_generated(self):
-        values = [
-            len(self.game.renderer.storages[child.children["unified"].uuid].vertices)
-            >= child.children["unified"].expected_verts
-            for child in self.children["split"]
-        ]
-        return all(values)
+        try:
+            values = [
+                len(self.game.renderer.storages[child.children["unified"].uuid].vertices)
+                >= child.children["unified"].expected_verts
+                for child in self.children["split"]
+            ]
+            return all(values)
+        except KeyError: return False
+    
+    @property
+    def unifiedchildren_generated(self):
+        if "unified" not in self.children:
+            return False
+        return self.children['unified'].generated
+    
+    def show(self):
+        if self.state == "split":
+            for child in self.children["split"]:
+                child.show()
+        elif self.state == "unified":
+            self.children["unified"].show()
+            
+    def hide(self):
+        try:
+            for child in self.children["split"]:
+                child.hide()
+        except KeyError: pass
+        try:
+            self.children["unified"].hide()
+        except KeyError: pass
+        
