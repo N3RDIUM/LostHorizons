@@ -89,6 +89,7 @@ class Game:
             divisions = item["denominator"]
             CENTER = item["planet_center"]
             RADIUS = item["planet_radius"]
+            level = item["level"]
             new_verts = [
                 tesselate_partial(quad, segments, divisions, i)
                 for i in range(divisions)
@@ -114,7 +115,7 @@ class Game:
                     ]
                     noiseval = fractal_noise(
                         (x / 1000, y / 1000, z / 1000), seed=64, octaves=2
-                    )
+                    ) - level / 1000
                     tex_noiseval = fractal_ridge_noise(
                         (x * texScale, y * texScale, z * texScale),
                         seed=32786,

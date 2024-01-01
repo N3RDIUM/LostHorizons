@@ -33,6 +33,9 @@ class LeafNode:
         Schedule the generation of this chunk using multiprocessing.
         """
         self.mesh = self.renderer.create_storage(self.uuid)
+        level = 1
+        if self.parent:
+            level = self.parent.level
         self.game.addToQueue(
             {
                 "task": "tesselate_full",  # NOT partial
@@ -42,6 +45,7 @@ class LeafNode:
                 "denominator": self.segments // 16,
                 "planet_center": self.planet.center,
                 "planet_radius": self.planet.radius,
+                "level": level
             }
         )
 
@@ -82,27 +86,22 @@ class Node:
         )
 
         self.children = {}
-        self.cached_leaf = None
         self.generate_unified()
 
     def generate_unified(self):
         """
         Generate the node as a unified node, i.e. consisting of only one leaf node.
         """
-        if not self.cached_leaf:
-            new = LeafNode(
-                quad=self.quad,
-                parent=self.parent,
-                planet=self.planet,
-                renderer=self.renderer,
-                game=self.game,
-            )
-            self.game.generation_queue.append(new)
-            # Indexes: "unified": unified node and "split": [array of 4 nodes]
-            self.children["unified"] = new
-            self.cached_leaf = new
-        else:
-            self.children["unified"] = self.cached_leaf
+        new = LeafNode(
+            quad=self.quad,
+            parent=self.parent,
+            planet=self.planet,
+            renderer=self.renderer,
+            game=self.game,
+        )
+        self.game.generation_queue.append(new)
+        # Indexes: "unified": unified node and "split": [array of 4 nodes]
+        self.children["unified"] = new
 
     def generate_split(self):
         """
@@ -183,14 +182,13 @@ class Node:
             # If the player is within the node's size * 2, split the node
             if distance < size and "split" not in self.children:
                 self.generate_split()
-                thread = threading.Thread(target=self.wait_and_hide)
-                thread.start()
-            elif distance > self.size and "split" in self.children:
+                self.children['unified'].hide()
+            elif distance > size and "split" in self.children:
                 self.generate_unified()
-                for child in self.children["split"]:
+                for child in self.children['split']:
                     child.delete()
-                del self.children["split"]
-
+                del self.children['split']
+                
         res = None
         for result in self.game.namespace.generated_chunks:
             if result["mesh"] == self.children["unified"].uuid:
@@ -242,16 +240,3 @@ class Node:
             for child in self.children["split"]
         ]
         return all(values)
-
-    def wait_and_hide(self):
-        """
-        Wait for a bit and hide the node.
-        """
-        while not self.children_generated:
-            time.sleep(1 / 60)
-        try:
-            while not self.splitchildren_generated:
-                time.sleep(1 / 60)
-            self.children["unified"].hide()
-        except KeyError:
-            self.children["unified"].show()
