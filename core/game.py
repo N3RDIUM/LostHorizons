@@ -1,12 +1,15 @@
 import json
 import math
 import multiprocessing
-from multiprocessing import shared_memory
-import numpy as np
 import random
 import threading
 import time
 import uuid
+from multiprocessing import shared_memory
+
+import filelock
+import numba
+import numpy as np
 
 from camera.player import Player
 from core.fractalnoise import fractal_noise, fractal_ridge_noise
@@ -14,8 +17,6 @@ from core.renderer import Renderer
 from core.tesselate import tesselate_partial
 from planets.planet import LoDPlanet as LoD
 
-import filelock
-import numba
 
 class Game:
     def __init__(self, window):
@@ -98,7 +99,7 @@ class Game:
             pos_len = 0
             texScale = 1 / 16
             color = (random.random() / 4, random.random() / 4, random.random() / 4)
-            
+
             vertices = []
             colors = []
 
@@ -113,9 +114,12 @@ class Game:
                         y / length * RADIUS,
                         z / length * RADIUS,
                     ]
-                    noiseval = fractal_noise(
-                        (x / 1000, y / 1000, z / 1000), seed=64, octaves=2
-                    ) - level / 1000
+                    noiseval = (
+                        fractal_noise(
+                            (x / 1000, y / 1000, z / 1000), seed=64, octaves=2
+                        )
+                        - level / 1000
+                    )
                     tex_noiseval = fractal_ridge_noise(
                         (x * texScale, y * texScale, z * texScale),
                         seed=32786,
@@ -134,40 +138,50 @@ class Game:
 
                 verts_1d = [item for sublist in _new_verts for item in sublist]
                 vertices.extend(verts_1d)
-                
+
                 for vert in _new_verts:
                     pos_sum = [pos_sum[j] + vert[j] for j in range(3)]
                     pos_len += 1
-            
+
             try:
-                vtx_shared_memory = shared_memory.SharedMemory(name=f"buffer-{str(item['mesh'])}-vertices")
-                clr_shared_memory = shared_memory.SharedMemory(name=f"buffer-{str(item['mesh'])}-colors")
-                
+                vtx_shared_memory = shared_memory.SharedMemory(
+                    name=f"buffer-{str(item['mesh'])}-vertices"
+                )
+                clr_shared_memory = shared_memory.SharedMemory(
+                    name=f"buffer-{str(item['mesh'])}-colors"
+                )
+
                 vtx_data = np.asarray(vertices, dtype=np.float32)
                 clr_data = np.asarray(colors, dtype=np.float32)
-                
-                vtx = np.ndarray(vtx_data.shape, dtype=vtx_data.dtype, buffer=vtx_shared_memory.buf)
-                clr = np.ndarray(clr_data.shape, dtype=clr_data.dtype, buffer=clr_shared_memory.buf)
-                
+
+                vtx = np.ndarray(
+                    vtx_data.shape, dtype=vtx_data.dtype, buffer=vtx_shared_memory.buf
+                )
+                clr = np.ndarray(
+                    clr_data.shape, dtype=clr_data.dtype, buffer=clr_shared_memory.buf
+                )
+
                 vtx[:] = vtx_data[:]
                 clr[:] = clr_data[:]
-                
-                namespace.result_queue.put({
-                    "type": "buffer_mod",
-                    "mesh": item["mesh"],
-                    "shape": {
-                        "vtx": vtx.shape,
-                        "clr": clr.shape
+
+                namespace.result_queue.put(
+                    {
+                        "type": "buffer_mod",
+                        "mesh": item["mesh"],
+                        "shape": {"vtx": vtx.shape, "clr": clr.shape},
                     }
-                })
-            except: pass
-                
-            namespace.generated_chunks.append({
-                "mesh": item["mesh"],
-                "average_position": tuple(pos_sum[j] / pos_len for j in range(3)),
-                "expected_verts": pos_len * 2
-            })
-        
+                )
+            except:
+                pass
+
+            namespace.generated_chunks.append(
+                {
+                    "mesh": item["mesh"],
+                    "average_position": tuple(pos_sum[j] / pos_len for j in range(3)),
+                    "expected_verts": pos_len * 2,
+                }
+            )
+
     def terminate(self):
         """
         Terminate all processes.
