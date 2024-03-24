@@ -2,6 +2,7 @@ from planets.quadtree import Node
 
 
 class LoD:
+
     def __init__(self, game, render_distance, chunk_size=256):
         self.nodes = {}
         self.render_distance = render_distance

@@ -42,4 +42,3 @@ if __name__ == "__main__":
     glfw.terminate()
     game.terminate()
     exit()
- 
