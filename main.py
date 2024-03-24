@@ -35,9 +35,9 @@ def create_window():
 if __name__ == "__main__":
     initialize()
     window = create_window()
-    game = Simulation(window)
+    simulation = Simulation(window)
     window.mainloop()
     glfw.terminate()
-    game.terminate()
+    simulation.terminate()
     exit()
  
