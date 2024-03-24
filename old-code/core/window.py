@@ -8,11 +8,13 @@ from OpenGL.GL import (
     GL_DEPTH_TEST,
     GL_MODELVIEW,
     GL_PROJECTION,
+    GL_BACK,
     glClearColor,
     glEnable,
     glLoadIdentity,
     glMatrixMode,
     glViewport,
+    glCullFace
 )
 from OpenGL.GLU import gluPerspective
 
@@ -150,8 +152,8 @@ class GameWindow:
         """
         Main loop.
         """
-        glEnable(GL_DEPTH_TEST)
         glEnable(GL_CULL_FACE)
+        glCullFace(GL_BACK)
         glfw.make_context_current(self.window)
         while not glfw.window_should_close(self.window):  # Main loop.
             self.current_frame = time.time()
@@ -169,8 +171,8 @@ class GameWindow:
             display_debug((8, 8), display)
 
             # GLFW stuff.
-            glfw.poll_events()
             glfw.swap_buffers(self.window)
+            glfw.poll_events()
             self.previous_frame = self.current_frame
 
     def setup_3d(self):
@@ -181,6 +183,6 @@ class GameWindow:
         glViewport(0, 0, width, height)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        gluPerspective(45, width / height, 0.0001, 100000000)
+        gluPerspective(45, width / height, 0.0001, 10000)
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()

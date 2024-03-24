@@ -94,7 +94,8 @@ class Game:
             pos_sum = [0, 0, 0]
             pos_len = 0
             texScale = 1 / 64
-            color = (0.25, 0.25, 0.25)
+            color = [0.25 * abs(random.random()) for i in range(3)]
+            color = tuple(color)
             
             vertices = []
             colors = []
@@ -111,7 +112,7 @@ class Game:
                         z / length * RADIUS,
                     ]
                     noiseval = fractal_noise(
-                        (x / RADIUS, y / RADIUS, z / RADIUS), seed=64, octaves=4 + level
+                        (x / RADIUS, y / RADIUS, z / RADIUS), seed=64, octaves=4
                     ) * 16
                     length = math.sqrt(x**2 + y**2 + z**2) + noiseval * 10 - level / 1000
                     x, y, z = [
@@ -119,12 +120,13 @@ class Game:
                         y / length * RADIUS,
                         z / length * RADIUS,
                     ]
+                    _new_verts[i] = (x, y, z)
+                    
                     tex_noiseval = fractal_ridge_noise(
                         (x * texScale, y * texScale, z * texScale),
                         seed=32786,
-                        octaves=4 + level,
+                        octaves=4,
                     ) / 2 - noiseval / 32
-                    _new_verts[i] = (x, y, z)
                     colors.extend(
                         (color[j] + tex_noiseval * 0.5 + 0.25) for j in range(3)
                     )

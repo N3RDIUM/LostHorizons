@@ -107,9 +107,12 @@ class Renderer:
         """
         glClear(GL_COLOR_BUFFER_BIT)
         glClear(GL_DEPTH_BUFFER_BIT)
-        glEnable(GL_DEPTH_TEST)
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_COLOR_ARRAY)
+        glEnable(GL_DEPTH_TEST)
+        glDepthMask(GL_TRUE)
+        glDepthFunc(GL_LEQUAL)
+        glDepthRange(0.0, 1.0)
         try:
             for storage in self.storages:
                 try:

@@ -181,8 +181,8 @@ class Node:
         player = self.game.player
         position = self.position
         player_pos = [-player.position[0], -player.position[1], -player.position[2]]
-        distance = math.dist(player_pos, position) * self.level * 2
-        size = self.size * self.level
+        distance = math.dist(player_pos, position)
+        size = self.size / 3
         # If the player is within the node's size * 2, split the node
         if distance < size and "split" not in self.children:
             self.generate_split()

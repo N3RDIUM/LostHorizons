@@ -19,7 +19,7 @@ class Buffer:
         self.id = id
         self.buf = vbo.VBO(
             np.zeros(VBO_SIZE, dtype=np.float32),
-            usage="GL_STATIC_DRAW",
+            usage="GL_DYNAMIC_DRAW",
             target="GL_ARRAY_BUFFER",
         )
         self.max_idx = 0
