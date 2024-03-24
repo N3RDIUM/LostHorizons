@@ -26,7 +26,7 @@ class Simulation:
         self.process_count = multiprocessing.cpu_count()
         for i in range(self.process_count):
             self.processes.append(
-                multiprocessing.Process(target=self.process, args=(self.namespace,))
+                multiprocessing.Process(target=self.process, args=(self.namespace))
             )
             self.processes[i].start()
 
