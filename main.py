@@ -40,6 +40,6 @@ def fast_tesselate():
             new_verts[(y * (segments + 1) + x) * 12 + 11] = p1[2] + (p2[2] - p1[2]) * (x + 1) / segments + (p4[2] - p1[2]) * (y + 1) / segments
             
 t = perf_counter()  
-tesselate()
+fast_tesselate()
 print(new_verts)
 print(f"done in {perf_counter() - t}s")
