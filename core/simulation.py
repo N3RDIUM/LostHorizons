@@ -1,14 +1,17 @@
 import math
 import multiprocessing
-from multiprocessing import shared_memory
-import numpy as np
 import random
 import threading
+from multiprocessing import shared_memory
+
+import numpy as np
 
 from camera.player import Player
 from core.renderer import Renderer
 
+
 class Simulation:
+
     def __init__(self, window):
         """
         class Game
@@ -74,7 +77,7 @@ class Simulation:
         Handle a queue item.
         """
         # TODO: Send the thingy to a child worker process thing.
-        
+
     def terminate(self):
         """
         Terminate all processes.
