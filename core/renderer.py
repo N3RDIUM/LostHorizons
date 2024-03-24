@@ -1,3 +1,4 @@
+# imports
 import numpy as np
 from OpenGL.GL import *
 from OpenGL.GL import (
@@ -16,6 +17,7 @@ from core.buffer import Buffer
 from core.bufferdata import BufferDataStorage
 from multiprocessing import shared_memory
 
+# Enable required OpenGL features
 glEnable(GL_ARRAY_BUFFER)
 glEnableClientState(GL_VERTEX_ARRAY)
 glEnableClientState(GL_COLOR_ARRAY)

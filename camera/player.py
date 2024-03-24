@@ -6,10 +6,9 @@ from OpenGL.GL import *
 
 class Player:
 
-    def __init__(self, position=[0, 0, -2048], rotation=[0, 0, 0], planet=None):
+    def __init__(self, position=[0, 0, -2048], rotation=[0, 0, 0]):
         self.position = position
         self.rotation = rotation
-        self.planet = planet
         self.mouse_prev = glfw.get_cursor_pos(glfw.get_current_context())
         self.default_speed = 16
         self.speed = self.default_speed
