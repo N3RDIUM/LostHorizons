@@ -4,7 +4,9 @@ from multiprocessing import shared_memory
 from camera.player import Player
 from core.renderer import Renderer
 
+
 class Simulation:
+
     def __init__(self, window):
         """
         class Game
@@ -14,14 +16,14 @@ class Simulation:
         self.renderer = Renderer(self)
         self.player = Player()
         self.frame = 0
-        
-        self.manager = multiprocessing.Manager()        
+
+        self.manager = multiprocessing.Manager()
         self.namespace = self.manager.Namespace()
         self.namespace.queue = self.manager.Queue()
         self.namespace.result_queue = self.manager.Queue()
         self.namespace.generated_chunks = self.manager.list()
         self.namespace.killed = False
-        
+
         self.processes = []
         self.process_count = multiprocessing.cpu_count()
         for i in range(self.process_count):
@@ -64,7 +66,7 @@ class Simulation:
         Handle a queue item.
         """
         # TODO: Send the thingy to a child worker process thing.
-        
+
     def terminate(self):
         """
         Terminate all processes.
