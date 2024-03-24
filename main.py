@@ -40,4 +40,3 @@ if __name__ == "__main__":
     glfw.terminate()
     simulation.terminate()
     exit()
- 
