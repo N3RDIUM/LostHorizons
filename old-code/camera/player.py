@@ -46,7 +46,10 @@ class Player:
         # drag mouse to rotate
         current_position = glfw.get_cursor_pos(window)
         if glfw.get_mouse_button(window, glfw.MOUSE_BUTTON_LEFT) == glfw.PRESS:
-            delta = [current_position[0] - self.mouse_prev[0], current_position[1] - self.mouse_prev[1]]
+            delta = [
+                current_position[0] - self.mouse_prev[0],
+                current_position[1] - self.mouse_prev[1],
+            ]
             self.mouse_prev = current_position
 
             self.rotation[0] -= delta[1] * 0.1

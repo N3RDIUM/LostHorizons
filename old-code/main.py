@@ -2,10 +2,9 @@ import os
 import shutil
 
 import glfw
-from OpenGL.GLUT import glutInit
-
 from core.game import Game
 from core.window import GameWindow
+from OpenGL.GLUT import glutInit
 
 
 def initialize():
@@ -42,4 +41,3 @@ if __name__ == "__main__":
     glfw.terminate()
     game.terminate()
     exit()
- 
