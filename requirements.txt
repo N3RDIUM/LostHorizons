@@ -2,6 +2,7 @@ PyOpenGL
 PyOpenGL-Accelerate
 glfw
 numpy
-noise
+opensimplex
 numba
 filelock
+taichi
