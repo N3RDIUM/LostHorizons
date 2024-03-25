@@ -1,4 +1,5 @@
 class BufferDataStorage:
+
     def __init__(self) -> None:
         """
         This class stores the data for a buffer.

@@ -1,7 +1,9 @@
 import math
-import numpy as np
-from uuid import uuid4
 from multiprocessing import shared_memory
+from uuid import uuid4
+
+import numpy as np
+
 
 def midpoint(v1, v2):
     x = (v1[0] + v2[0]) / 2
@@ -10,9 +12,17 @@ def midpoint(v1, v2):
 
     return [x, y, z]
 
+
 class LeafNode:
+
     def __init__(
-        self, quad=None, segments=128, parent=None, planet=None, renderer=None, simulation=None
+        self,
+        quad=None,
+        segments=128,
+        parent=None,
+        planet=None,
+        renderer=None,
+        simulation=None,
     ):
         """
         LeafNode
@@ -26,7 +36,7 @@ class LeafNode:
         self.uuid = str(uuid4())
         self.generated = False
         self.expected_verts = (self.segments + 1) ** 2 * 4 * 12
-        
+
         self.generate()
 
     def generate(self):
@@ -34,19 +44,18 @@ class LeafNode:
         Schedule the generation of this chunk using multiprocessing.
         """
         self.renderer.create_storage(self.uuid)
-        
-        shm = shared_memory.SharedMemory(create=True, size=self.quad.nbytes, name=str(uuid4()))
+
+        shm = shared_memory.SharedMemory(
+            create=True, size=self.quad.nbytes, name=str(uuid4())
+        )
         b = np.ndarray(self.quad.shape, dtype=np.float64, buffer=shm.buf)
         b[:] = self.quad[:]
-        
+
         self.simulation.addToQueue(
             {
                 "task": "tesselate",
                 "task-id": self.uuid,
-                "args": {
-                    "rect-uuid": shm.name,
-                    "segments": self.segments
-                }
+                "args": {"rect-uuid": shm.name, "segments": self.segments},
             }
         )
         self.simulation.scheduled_objects[self.uuid] = self
@@ -56,25 +65,30 @@ class LeafNode:
         Delete this chunk.
         """
         self.renderer.delete_later(self.uuid)
-        
+
     def notify_done(self, result):
         """
         The simulation uses this thing to give the result back.
         """
-        uuid = result['mesh-uuid']
-        shape = result['mesh-shape']
-        
+        uuid = result["mesh-uuid"]
+        shape = result["mesh-shape"]
+
         buffer = shared_memory.SharedMemory(name=uuid)
         mesh = np.ndarray(shape, dtype=np.float64, buffer=buffer.buf)
         colors = np.ones(shape[0])
         colors[:] = 1
-        
+
         self.renderer.update_storage(self.uuid, mesh, colors)
-        
-    def show(self): self.renderer.show(self.uuid)
-    def hide(self): self.renderer.hide(self.uuid)
-        
+
+    def show(self):
+        self.renderer.show(self.uuid)
+
+    def hide(self):
+        self.renderer.hide(self.uuid)
+
+
 class Node:
+
     def __init__(
         self, quad, parent=None, planet=None, renderer=None, simulation=None, level=1
     ):
@@ -205,14 +219,14 @@ class Node:
             self.generate_split()
         elif distance > size and "unified" not in self.children:
             self.generate_unified()
-        
+
         if distance < size:
             self.state = "split"
         elif distance > size:
             self.state = "unified"
-        
+
         if self.splitchildren_generated and distance < size:
-            self.children['unified'].hide()
+            self.children["unified"].hide()
             for child in self.children["split"]:
                 child.show()
         elif self.unifiedchildren_generated and distance > size:
@@ -221,7 +235,7 @@ class Node:
                     child.delete()
                 del self.children["split"]
             self.children["unified"].show()
-                
+
         res = None
         for result in self.simulation.namespace.generated_chunks:
             if result["mesh"] == self.children["unified"].uuid:
@@ -242,37 +256,43 @@ class Node:
             else:
                 for _child in child:
                     _child.delete()
-    
-    @property 
+
+    @property
     def splitchildren_generated(self):
         try:
             values = [
-                len(self.simulation.renderer.storages[child.children["unified"].uuid].vertices)
+                len(
+                    self.simulation.renderer.storages[
+                        child.children["unified"].uuid
+                    ].vertices
+                )
                 >= child.children["unified"].expected_verts
                 for child in self.children["split"]
             ]
             return all(values)
-        except KeyError: return False
-    
+        except KeyError:
+            return False
+
     @property
     def unifiedchildren_generated(self):
         if "unified" not in self.children:
             return False
-        return self.children['unified'].generated
-    
+        return self.children["unified"].generated
+
     def show(self):
         if self.state == "split":
             for child in self.children["split"]:
                 child.show()
         elif self.state == "unified":
             self.children["unified"].show()
-            
+
     def hide(self):
         try:
             for child in self.children["split"]:
                 child.hide()
-        except KeyError: pass
+        except KeyError:
+            pass
         try:
             self.children["unified"].hide()
-        except KeyError: pass
-        
+        except KeyError:
+            pass
