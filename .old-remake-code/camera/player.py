@@ -3,7 +3,7 @@ import glfw
 from OpenGL.GL import *
 
 class Player:
-    def __init__(self, position=[0, 0, -2048], rotation=[0, 0, 0]):
+    def __init__(self, position=[0, 0, -64], rotation=[0, 0, 0]):
         self.position = position
         self.rotation = rotation
         self.mouse_prev = glfw.get_cursor_pos(glfw.get_current_context())

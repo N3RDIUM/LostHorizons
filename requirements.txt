@@ -1,8 +1,0 @@
-PyOpenGL
-PyOpenGL-Accelerate
-glfw
-numpy
-opensimplex
-numba
-filelock
-taichi

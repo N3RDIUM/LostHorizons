@@ -56,8 +56,8 @@ class Renderer:
         self.storages[id].vertices = vertices.copy()
         self.storages[id].colors = colors.copy()
         
-        self.buffers[id]["vertices"].modify(vertices)
-        self.buffers[id]["colors"].modify(colors)
+        self.buffers[id]["vertices"].set_array(vertices)
+        self.buffers[id]["colors"].set_array(colors)
         
     def update(self):
         """
@@ -68,12 +68,12 @@ class Renderer:
         """
         Draw the specified storage.
         """
-        vbo_vertices = self.buffers[id]["vertices"]
-        vbo_colors = self.buffers[id]["colors"]
+        vbo_vertices = self.buffers[id]["vertices"].buf
+        vbo_colors = self.buffers[id]["colors"].buf
         vbo_vertices.bind()
-        glVertexPointer(3, GL_FLOAT, 0, vbo_vertices.buf)
+        glVertexPointer(3, GL_FLOAT, 0, vbo_vertices)
         vbo_colors.bind()
-        glColorPointer(3, GL_FLOAT, 0, vbo_colors.buf)
+        glColorPointer(3, GL_FLOAT, 0, vbo_colors)
 
         glDrawArrays(GL_TRIANGLES, 0, len(self.storages[id].vertices) // 3)
 
