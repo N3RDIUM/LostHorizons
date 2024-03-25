@@ -61,7 +61,15 @@ class LeafNode:
         """
         The simulation uses this thing to give the result back.
         """
-        print(result)
+        uuid = result['mesh-uuid']
+        shape = result['mesh-shape']
+        
+        buffer = shared_memory.SharedMemory(name=uuid)
+        mesh = np.ndarray(shape, dtype=np.float64, buffer=buffer.buf)
+        colors = np.ones(shape[0])
+        colors[:] = 255
+        
+        self.renderer.update_storage(self.uuid, mesh, colors)
         
     def show(self): self.renderer.show(self.uuid)
     def hide(self): self.renderer.hide(self.uuid)

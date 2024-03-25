@@ -142,8 +142,8 @@ class Simulation:
                 vtx_shared_memory = shared_memory.SharedMemory(name=f"buffer-{str(item['mesh'])}-vertices")
                 clr_shared_memory = shared_memory.SharedMemory(name=f"buffer-{str(item['mesh'])}-colors")
                 
-                vtx_data = np.asarray(vertices, dtype=np.float32)
-                clr_data = np.asarray(colors, dtype=np.float32)
+                vtx_data = np.asarray(vertices, dtype=np.float64)
+                clr_data = np.asarray(colors, dtype=np.float64)
                 
                 vtx = np.ndarray(vtx_data.shape, dtype=vtx_data.dtype, buffer=vtx_shared_memory.buf)
                 clr = np.ndarray(clr_data.shape, dtype=clr_data.dtype, buffer=clr_shared_memory.buf)

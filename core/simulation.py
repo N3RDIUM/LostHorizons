@@ -91,15 +91,17 @@ class Simulation:
             
             t = perf_counter()
             result = helpers['tesselator'](rect, segments)
+            time = perf_counter() - t
             result_buffer = shared_memory.SharedMemory(create=True, size=result.nbytes, name=str(uuid4()))
-            shared_result = np.ndarray(result.shape, dtype=result.dtype, buffer=result_buffer.buf)
+            shared_result = np.ndarray(result.shape, dtype=np.float64, buffer=result_buffer.buf)
             shared_result[:] = result[:]
             
             namespace.result_queue.put({
                 "task-id": item['task-id'],
                 "task": 'tesselate',
                 "mesh-uuid": result_buffer.name,
-                "time_taken": perf_counter() - t
+                "mesh-shape": result.shape,
+                "time_taken": time
             })
         
     def terminate(self):
@@ -126,7 +128,6 @@ class Simulation:
         while not self.window.killed:
             if not self.namespace.result_queue.empty():
                 item = self.namespace.result_queue.get()
-                print(item)
-                self.scheduled_objects[item['task-id']].notify_done
+                self.scheduled_objects[item['task-id']].notify_done(item)
                 self.result_queue.append(item)
                 

@@ -15,7 +15,6 @@ from OpenGL.GL import (
 
 from core.buffer import Buffer
 from core.bufferdata import BufferDataStorage
-from multiprocessing import shared_memory
 
 # Enable required OpenGL features
 glEnable(GL_ARRAY_BUFFER)
@@ -47,56 +46,34 @@ class Renderer:
         self.buffers[id] = {
             "vertices": Buffer(f"{str(id)}-vertices"),
             "colors": Buffer(f"{str(id)}-colors"),
-            "vtx_shared_memory": shared_memory.SharedMemory(create=True, size=32768*512, name=f"buffer-{str(id)}-vertices"),
-            "clr_shared_memory": shared_memory.SharedMemory(create=True, size=32768*512, name=f"buffer-{str(id)}-colors"),
             "show": True,
         }
 
-    def update_storage(self, id, item):
+    def update_storage(self, id, vertices, colors):
         """
         If the storage has changed, update it.
         """
-        try:
-            vertices = self.buffers[id]["vtx_shared_memory"]
-            colors = self.buffers[id]["clr_shared_memory"]
-            shape = item["shape"]
-            vtx_shape = shape["vtx"]
-            clr_shape = shape["clr"]
-            
-            vtx = np.ndarray(shape=vtx_shape, dtype=np.float32, buffer=vertices.buf)
-            clr = np.ndarray(shape=clr_shape, dtype=np.float32, buffer=colors.buf)
-
-            self.buffers[id]["vertices"].modify(vtx)
-            self.buffers[id]["colors"].modify(clr)
-            
-            self.storages[id].vertices = vtx.copy()
-            self.storages[id].colors = clr.copy()
-        except KeyError:
-            pass
+        self.storages[id].vertices = vertices.copy()
+        self.storages[id].colors = colors.copy()
+        
+        self.buffers[id]["vertices"].modify(vertices)
+        self.buffers[id]["colors"].modify(colors)
         
     def update(self):
         """
         Update the buffers.
         """
-        for i, item in enumerate(self.parent.result_queue):
-            try:
-                if item["task"] == "buffer_mod":
-                    self.update_storage(item["mesh"], item)
-                    self.parent.result_queue.pop(i)
-                    break
-            except IndexError:
-                break
-
+        
     def draw_storage(self, id):
         """
         Draw the specified storage.
         """
-        vbo_vertices = self.buffers[id]["vertices"].buf
-        vbo_colors = self.buffers[id]["colors"].buf
+        vbo_vertices = self.buffers[id]["vertices"]
+        vbo_colors = self.buffers[id]["colors"]
         vbo_vertices.bind()
-        glVertexPointer(3, GL_FLOAT, 0, vbo_vertices)
+        glVertexPointer(3, GL_FLOAT, 0, vbo_vertices.buf)
         vbo_colors.bind()
-        glColorPointer(3, GL_FLOAT, 0, vbo_colors)
+        glColorPointer(3, GL_FLOAT, 0, vbo_colors.buf)
 
         glDrawArrays(GL_TRIANGLES, 0, len(self.storages[id].vertices) // 3)
 
@@ -136,14 +113,6 @@ class Renderer:
         Delete the specified storage.
         """
         try:
-            try:
-                self.buffers[id]['vtx_shared_memory'].unlink()
-                self.buffers[id]['vtx_shared_memory'].close()
-                self.buffers[id]['clr_shared_memory'].unlink()
-                self.buffers[id]['clr_shared_memory'].close()
-                del self.buffers[id]['vtx_shared_memory']
-                del self.buffers[id]['clr_shared_memory']
-            except: pass
             del self.buffers[id]["show"]
             for buffer_type in self.buffers[id]:
                 try:
