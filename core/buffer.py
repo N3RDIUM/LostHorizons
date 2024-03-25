@@ -7,6 +7,7 @@ from OpenGL.GL import *
 
 VBO_SIZE = 1000000
 
+
 class Buffer:
     """
     Buffer
@@ -24,9 +25,10 @@ class Buffer:
         glBindBuffer(GL_ARRAY_BUFFER, self.buf)
 
         # Allocate storage for the buffer using glBufferStorage and specify the desired storage flags
-        glBufferStorage(GL_ARRAY_BUFFER, VBO_SIZE, None,
-                        GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT)
-        
+        glBufferStorage(
+            GL_ARRAY_BUFFER, VBO_SIZE, None, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+        )
+
         self.map_buffer()
         self.unmap_buffer()
 
@@ -38,8 +40,9 @@ class Buffer:
         glBindBuffer(GL_ARRAY_BUFFER, self.buf)
 
         # Map the buffer to memory using glMapBufferRange
-        ptr = glMapBufferRange(GL_ARRAY_BUFFER, 0, VBO_SIZE,
-                               GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT)
+        ptr = glMapBufferRange(
+            GL_ARRAY_BUFFER, 0, VBO_SIZE, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+        )
 
         # Create a pointer to the data buffer object
         self.data_ptr = ctypes.cast(ptr, ctypes.POINTER(GLfloat * VBO_SIZE))
@@ -62,21 +65,21 @@ class Buffer:
         :param offset: The offset to start writing at.
         """
         # Modify the buffer
-        self.data_ptr.contents[offset:offset + len(data)] = data
+        self.data_ptr.contents[offset : offset + len(data)] = data
         glFlush()
-    
+
     def bind(self):
         """
         Binds the buffer.
         """
         glBindBuffer(GL_ARRAY_BUFFER, self.buf)
-        
+
     def unbind(self):
         """
         Unbinds the buffer.
         """
         glBindBuffer(GL_ARRAY_BUFFER, 0)
-        
+
     def __del__(self):
         """
         Deletes the buffer.
