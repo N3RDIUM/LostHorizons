@@ -2,7 +2,7 @@ import taichi as ti
 import numpy as np
 ti.init(arch=ti.cpu)
 
-def fast_tesselate(quad: np.array, segments: int) -> np.array:
+def fast_tesselate(rect: np.array, segments: int) -> np.array:
     """
     This function takes a rect in 3d space and tesselates it.
     
@@ -11,11 +11,11 @@ def fast_tesselate(quad: np.array, segments: int) -> np.array:
     """
     new_vertices = ti.field(dtype=ti.f64, shape=(segments + 1) ** 2 * 12)
     
-    quad_field = ti.field(ti.f32, shape=quad.shape)
+    quad_field = ti.field(ti.f32, shape=rect.shape)
     quad_field.fill(0)
-    for x in range(len(quad)):
-        for y in range(len(quad[x])):
-            quad_field[x, y] = quad[x, y]
+    for x in range(len(rect)):
+        for y in range(len(rect[x])):
+            quad_field[x, y] = rect[x, y]
 
     @ti.kernel
     def tesselate():
@@ -57,4 +57,7 @@ def fast_tesselate(quad: np.array, segments: int) -> np.array:
                 new_vertices[current + 11] = p1[2] + f * yp1 * inv_segments
 
     tesselate()
-    return np.asarray(new_vertices)
+    result = np.zeros(shape=((segments + 1) ** 2 * 12), dtype=np.float64)
+    for x in range(len(result)):
+        result[x] = new_vertices[x]
+    return result

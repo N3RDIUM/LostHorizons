@@ -13,11 +13,11 @@ from planets.planet import LoDPlanet as LoD
 
 import numba
 
-class Game:
+class Simulation:
     def __init__(self, window):
         """
-        class Game
-        This is the main game class.
+        class Simulation
+        This is the main simulation class.
         """
         self.window = window
         self.renderer = Renderer(self)
@@ -72,7 +72,7 @@ class Game:
         while not namespace.killed:
             if not queue.empty():
                 item = queue.get()
-                Game.handleQueueItem(item, namespace)
+                Simulation.handleQueueItem(item, namespace)
 
         if namespace.killed:
             glfw.terminate()

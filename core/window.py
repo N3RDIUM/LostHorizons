@@ -77,6 +77,7 @@ class Window:
         self.smooth_fps_samples = []
         self.smooth_fps = 0
         self.logs = []
+        self.killed = False
 
         self._scheduled_sc = []  # Scheduled shared context objects.
         self._scheduled_main = []  # Scheduled main context objects.
@@ -165,6 +166,7 @@ class Window:
             glfw.swap_buffers(self.window)
             glfw.poll_events()
             self.previous_frame = self.current_frame
+        self.killed = True
 
     def setup_3d(self):
         """

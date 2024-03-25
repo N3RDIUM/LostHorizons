@@ -4,8 +4,8 @@ import shutil
 import glfw
 from OpenGL.GLUT import glutInit
 
-from core.game import Game
-from core.window import GameWindow
+from core.simulation import Simulation
+from core.window import SimulationWindow
 
 
 def initialize():
@@ -28,7 +28,7 @@ def create_window():
     """
     Create a windowed mode window and its OpenGL context
     """
-    window = GameWindow(width=1600, height=900, title="Lost Horizons")
+    window = SimulationWindow(width=1600, height=900, title="Lost Horizons")
     return window
 
 
@@ -36,10 +36,10 @@ if __name__ == "__main__":
     # Initialize GLFW and GLUT and create the window
     initialize()
     window = create_window()
-    game = Game(window)
+    simulation = Simulation(window)
     window.mainloop()
     # After the player closes the window, terminate GLFW and exit the program
     glfw.terminate()
-    game.terminate()
+    simulation.terminate()
     exit()
  

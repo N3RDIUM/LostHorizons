@@ -1,11 +1,8 @@
 from math import cos, radians, sin
-
 import glfw
 from OpenGL.GL import *
 
-
 class Player:
-
     def __init__(self, position=[0, 0, -2048], rotation=[0, 0, 0]):
         self.position = position
         self.rotation = rotation

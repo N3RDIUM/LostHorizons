@@ -80,7 +80,7 @@ class Renderer:
         """
         for i, item in enumerate(self.parent.result_queue):
             try:
-                if item["type"] == "buffer_mod":
+                if item["task"] == "buffer_mod":
                     self.update_storage(item["mesh"], item)
                     self.parent.result_queue.pop(i)
                     break

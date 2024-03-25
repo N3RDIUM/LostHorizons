@@ -1,6 +1,7 @@
 import math
+import numpy as np
 from uuid import uuid4
-
+from multiprocessing import shared_memory
 
 def midpoint(v1, v2):
     x = (v1[0] + v2[0]) / 2
@@ -11,41 +12,44 @@ def midpoint(v1, v2):
 
 class LeafNode:
     def __init__(
-        self, quad, segments=128, parent=None, planet=None, renderer=None, game=None
+        self, quad=None, segments=128, parent=None, planet=None, renderer=None, simulation=None
     ):
         """
         LeafNode
         """
-        self.quad = quad
+        self.quad = np.asarray(quad, dtype=np.float64)
         self.segments = segments
         self.parent = parent
         self.planet = planet
         self.renderer = renderer
-        self.game = game
+        self.simulation = simulation
         self.uuid = str(uuid4())
         self.generated = False
-        self.expected_verts = 49920
+        self.expected_verts = (self.segments + 1) ** 2 * 4 * 12
+        
+        self.generate()
 
     def generate(self):
         """
         Schedule the generation of this chunk using multiprocessing.
         """
-        self.mesh = self.renderer.create_storage(self.uuid)
-        level = 1
-        if self.parent:
-            level = self.parent.level
-        self.game.addToQueue(
+        self.renderer.create_storage(self.uuid)
+        
+        shm = shared_memory.SharedMemory(create=True, size=self.quad.nbytes, name=str(uuid4()))
+        b = np.ndarray(self.quad.shape, dtype=np.float64, buffer=shm.buf)
+        b[:] = self.quad[:]
+        
+        self.simulation.addToQueue(
             {
-                "task": "tesselate_full",  # NOT partial
-                "mesh": self.uuid,
-                "quad": self.quad,
-                "segments": self.segments,
-                "denominator": self.segments // 16,
-                "planet_center": self.planet.center,
-                "planet_radius": self.planet.radius,
-                "level": level
+                "task": "tesselate",
+                "task-id": self.uuid,
+                "args": {
+                    "rect-uuid": shm.name,
+                    "segments": self.segments
+                }
             }
         )
+        self.simulation.scheduled_objects[self.uuid] = self
 
     def delete(self):
         """
@@ -53,12 +57,18 @@ class LeafNode:
         """
         self.renderer.delete_later(self.uuid)
         
+    def notify_done(self, result):
+        """
+        The simulation uses this thing to give the result back.
+        """
+        print(result)
+        
     def show(self): self.renderer.show(self.uuid)
     def hide(self): self.renderer.hide(self.uuid)
         
 class Node:
     def __init__(
-        self, quad, parent=None, planet=None, renderer=None, game=None, level=1
+        self, quad, parent=None, planet=None, renderer=None, simulation=None, level=1
     ):
         """
         My go at a QuadTree node implementation.
@@ -67,7 +77,7 @@ class Node:
         self.parent = parent
         self.planet = planet
         self.renderer = renderer
-        self.game = game
+        self.simulation = simulation
         self.id = str(uuid4())
         self.level = level
 
@@ -98,9 +108,8 @@ class Node:
                 parent=self.parent,
                 planet=self.planet,
                 renderer=self.renderer,
-                game=self.game,
+                simulation=self.simulation,
             )
-            self.game.generation_queue.append(new)
             # Indexes: "unified": unified node and "split": [array of 4 nodes]
             self.children["unified"] = new
             self.cached_leaf = new
@@ -137,7 +146,7 @@ class Node:
             parent=self,
             planet=self.planet,
             renderer=self.renderer,
-            game=self.game,
+            simulation=self.simulation,
             level=self.level + 1,
         )
         node2 = Node(
@@ -145,7 +154,7 @@ class Node:
             parent=self,
             planet=self.planet,
             renderer=self.renderer,
-            game=self.game,
+            simulation=self.simulation,
             level=self.level + 1,
         )
         node3 = Node(
@@ -153,7 +162,7 @@ class Node:
             parent=self,
             planet=self.planet,
             renderer=self.renderer,
-            game=self.game,
+            simulation=self.simulation,
             level=self.level + 1,
         )
         node4 = Node(
@@ -161,7 +170,7 @@ class Node:
             parent=self,
             planet=self.planet,
             renderer=self.renderer,
-            game=self.game,
+            simulation=self.simulation,
             level=self.level + 1,
         )
 
@@ -178,7 +187,7 @@ class Node:
                 child.update()
 
         # Get the player's distance from the center of the node
-        player = self.game.player
+        player = self.simulation.player
         position = self.position
         player_pos = [-player.position[0], -player.position[1], -player.position[2]]
         distance = math.dist(player_pos, position)
@@ -206,9 +215,9 @@ class Node:
             self.children["unified"].show()
                 
         res = None
-        for result in self.game.namespace.generated_chunks:
+        for result in self.simulation.namespace.generated_chunks:
             if result["mesh"] == self.children["unified"].uuid:
-                self.game.namespace.generated_chunks.remove(result)
+                self.simulation.namespace.generated_chunks.remove(result)
                 res = result
         if res:
             self.children["unified"].generated = True
@@ -230,7 +239,7 @@ class Node:
     def splitchildren_generated(self):
         try:
             values = [
-                len(self.game.renderer.storages[child.children["unified"].uuid].vertices)
+                len(self.simulation.renderer.storages[child.children["unified"].uuid].vertices)
                 >= child.children["unified"].expected_verts
                 for child in self.children["split"]
             ]

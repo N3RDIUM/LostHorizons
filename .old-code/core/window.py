@@ -54,7 +54,7 @@ class GLFWInitError(Exception):
 # Window class                                   #
 ##################################################
 
-class GameWindow:
+class SimulationWindow:
     """
     Window
 
