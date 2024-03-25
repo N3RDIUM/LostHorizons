@@ -1,4 +1,6 @@
 # imports
+from multiprocessing import shared_memory
+
 import numpy as np
 from OpenGL.GL import *
 from OpenGL.GL import (
@@ -15,14 +17,15 @@ from OpenGL.GL import (
 
 from core.buffer import Buffer
 from core.bufferdata import BufferDataStorage
-from multiprocessing import shared_memory
 
 # Enable required OpenGL features
 glEnable(GL_ARRAY_BUFFER)
 glEnableClientState(GL_VERTEX_ARRAY)
 glEnableClientState(GL_COLOR_ARRAY)
 
+
 class Renderer:
+
     def __init__(self, parent):
         """
         Renderer
@@ -47,8 +50,12 @@ class Renderer:
         self.buffers[id] = {
             "vertices": Buffer(f"{str(id)}-vertices"),
             "colors": Buffer(f"{str(id)}-colors"),
-            "vtx_shared_memory": shared_memory.SharedMemory(create=True, size=32768*512, name=f"buffer-{str(id)}-vertices"),
-            "clr_shared_memory": shared_memory.SharedMemory(create=True, size=32768*512, name=f"buffer-{str(id)}-colors"),
+            "vtx_shared_memory": shared_memory.SharedMemory(
+                create=True, size=32768 * 512, name=f"buffer-{str(id)}-vertices"
+            ),
+            "clr_shared_memory": shared_memory.SharedMemory(
+                create=True, size=32768 * 512, name=f"buffer-{str(id)}-colors"
+            ),
             "show": True,
         }
 
@@ -62,18 +69,18 @@ class Renderer:
             shape = item["shape"]
             vtx_shape = shape["vtx"]
             clr_shape = shape["clr"]
-            
+
             vtx = np.ndarray(shape=vtx_shape, dtype=np.float32, buffer=vertices.buf)
             clr = np.ndarray(shape=clr_shape, dtype=np.float32, buffer=colors.buf)
 
             self.buffers[id]["vertices"].modify(vtx)
             self.buffers[id]["colors"].modify(clr)
-            
+
             self.storages[id].vertices = vtx.copy()
             self.storages[id].colors = clr.copy()
         except KeyError:
             pass
-        
+
     def update(self):
         """
         Update the buffers.
@@ -137,18 +144,20 @@ class Renderer:
         """
         try:
             try:
-                self.buffers[id]['vtx_shared_memory'].unlink()
-                self.buffers[id]['vtx_shared_memory'].close()
-                self.buffers[id]['clr_shared_memory'].unlink()
-                self.buffers[id]['clr_shared_memory'].close()
-                del self.buffers[id]['vtx_shared_memory']
-                del self.buffers[id]['clr_shared_memory']
-            except: pass
+                self.buffers[id]["vtx_shared_memory"].unlink()
+                self.buffers[id]["vtx_shared_memory"].close()
+                self.buffers[id]["clr_shared_memory"].unlink()
+                self.buffers[id]["clr_shared_memory"].close()
+                del self.buffers[id]["vtx_shared_memory"]
+                del self.buffers[id]["clr_shared_memory"]
+            except:
+                pass
             del self.buffers[id]["show"]
             for buffer_type in self.buffers[id]:
                 try:
                     self.buffers[id][buffer_type].delete()
-                except AttributeError: pass
+                except AttributeError:
+                    pass
             del self.buffers[id]
             del self.storages[id]
         except KeyError:
@@ -163,9 +172,11 @@ class Renderer:
     def show(self, id):
         try:
             self.buffers[id]["show"] = True
-        except KeyError: pass
+        except KeyError:
+            pass
 
     def hide(self, id):
         try:
             self.buffers[id]["show"] = False
-        except KeyError: pass
+        except KeyError:
+            pass

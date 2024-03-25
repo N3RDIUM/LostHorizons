@@ -4,17 +4,17 @@ import time
 
 import glfw
 from OpenGL.GL import (
+    GL_BACK,
     GL_CULL_FACE,
     GL_DEPTH_TEST,
     GL_MODELVIEW,
     GL_PROJECTION,
-    GL_BACK,
     glClearColor,
+    glCullFace,
     glEnable,
     glLoadIdentity,
     glMatrixMode,
     glViewport,
-    glCullFace
 )
 from OpenGL.GLU import gluPerspective
 
@@ -53,6 +53,7 @@ class GLFWInitError(Exception):
 ##################################################
 # Window class                                   #
 ##################################################
+
 
 class SimulationWindow:
     """
@@ -166,8 +167,17 @@ class SimulationWindow:
 
             self.fps = 1 / (self.current_frame - self.previous_frame)
             self.smooth_fps_samples.append(self.fps)
-            self.smooth_fps = sum(self.smooth_fps_samples) / len(self.smooth_fps_samples)
-            display = self.logs.copy() + [str(self.fps) + " FPS (exact)", str(int(self.smooth_fps)) + " FPS (smooth, 64 samples)"] + ["LostHorizons"]
+            self.smooth_fps = sum(self.smooth_fps_samples) / len(
+                self.smooth_fps_samples
+            )
+            display = (
+                self.logs.copy()
+                + [
+                    str(self.fps) + " FPS (exact)",
+                    str(int(self.smooth_fps)) + " FPS (smooth, 64 samples)",
+                ]
+                + ["LostHorizons"]
+            )
             display_debug((8, 8), display)
 
             # GLFW stuff.
