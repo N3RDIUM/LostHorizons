@@ -7,6 +7,7 @@ from OpenGL.GLUT import glutInit
 from core.simulation import Simulation
 from core.window import Window
 
+
 def initialize():
     """
     Initialize GLFW and GLUT
@@ -30,6 +31,7 @@ def create_window():
     window = Window(width=1600, height=900, title="Lost Horizons")
     return window
 
+
 if __name__ == "__main__":
     initialize()
     window = create_window()
@@ -38,4 +40,3 @@ if __name__ == "__main__":
     glfw.terminate()
     simulation.terminate()
     exit()
- 
