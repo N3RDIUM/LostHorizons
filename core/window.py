@@ -1,8 +1,8 @@
 # Imports
 import glfw
 
-from core.logger import logger # TODO
-from core.object_scheduler import Scheduler # TODO: Scheduler core util with Queue, ObjectList.
+from core.logger import logger
+from core.object_scheduler import Scheduler
 
 class Window:
     """
