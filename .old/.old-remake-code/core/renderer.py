@@ -1,5 +1,7 @@
 # imports
 import numpy as np
+from core.buffer import Buffer
+from core.bufferdata import BufferDataStorage
 from OpenGL.GL import *
 from OpenGL.GL import (
     GL_ARRAY_BUFFER,
@@ -13,15 +15,14 @@ from OpenGL.GL import (
     glVertexPointer,
 )
 
-from core.buffer import Buffer
-from core.bufferdata import BufferDataStorage
-
 # Enable required OpenGL features
 glEnable(GL_ARRAY_BUFFER)
 glEnableClientState(GL_VERTEX_ARRAY)
 glEnableClientState(GL_COLOR_ARRAY)
 
+
 class Renderer:
+
     def __init__(self, parent):
         """
         Renderer
@@ -55,15 +56,15 @@ class Renderer:
         """
         self.storages[id].vertices = vertices.copy()
         self.storages[id].colors = colors.copy()
-        
+
         self.buffers[id]["vertices"].set_array(vertices)
         self.buffers[id]["colors"].set_array(colors)
-        
+
     def update(self):
         """
         Update the buffers.
         """
-        
+
     def draw_storage(self, id):
         """
         Draw the specified storage.
@@ -117,7 +118,8 @@ class Renderer:
             for buffer_type in self.buffers[id]:
                 try:
                     self.buffers[id][buffer_type].delete()
-                except AttributeError: pass
+                except AttributeError:
+                    pass
             del self.buffers[id]
             del self.storages[id]
         except KeyError:
@@ -132,9 +134,11 @@ class Renderer:
     def show(self, id):
         try:
             self.buffers[id]["show"] = True
-        except KeyError: pass
+        except KeyError:
+            pass
 
     def hide(self, id):
         try:
             self.buffers[id]["show"] = False
-        except KeyError: pass
+        except KeyError:
+            pass
