@@ -9,4 +9,4 @@ logging.basicConfig(
 )
 
 # Create logger
-logger = logging.getLogger('LostHorizon')
+logger = logging.getLogger("LostHorizon")
