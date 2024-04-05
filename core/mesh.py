@@ -19,7 +19,6 @@ class Mesh:
         self.lock = Lock()
         self.vertices = np.empty(DEFAULT_VBO_SIZE, dtype=np.float64)
         self.colors = np.empty(DEFAULT_VBO_SIZE, dtype=np.float64)
-        # TODO: Get values from multiprocessing shared memory
         
     def notify_change(self):
         """
@@ -32,6 +31,15 @@ class Mesh:
         Notify that the mesh modification was taken into account in the last update
         """
         self.changed = False
+        
+    def dispose(self):
+        """
+        Free memory and prepare the mesh for deletion
+        """
+        self.lock.acquire()
+        del self.vertices
+        del self.colors
+        self.lock.release()
         
 class UnifiedMesh:
     """
@@ -52,14 +60,13 @@ class UnifiedMesh:
         """
         new = Mesh()
         self.meshes[id] = new
-        self.update_later() # TODO: If an update is already scheduled, do nothing
         return id
     
     def delete_mesh(self, id):
         """
         Deletes a mesh by its id
         """
-        # self.get_mesh(id).dispose() # TODO: Add this func to Mesh and RenderMesh
+        self.get_mesh(id).dispose()
         del self.meshes[id]
         self.update_later()
         return id
@@ -73,6 +80,7 @@ class UnifiedMesh:
     def update(self):
         """
         Handle the creation of static meshes and update the update times
+        This function is to be called in the update thread of the window.
         """
         static = self.static_available
         if not static:
@@ -137,7 +145,6 @@ class UnifiedMesh:
             if not self.static_builds[mesh].lock.locked(): ret.append(mesh)
         return ret
     
-    # TODO: Property static_drawable which gives the latest static mesh which is not busy updating
     @property
     def static_drawable(self):
         """
