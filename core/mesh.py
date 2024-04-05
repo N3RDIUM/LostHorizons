@@ -75,7 +75,7 @@ class UnifiedMesh:
         Handle the creation of static meshes and update the update times
         """
         static = self.static_available
-        if not static:            
+        if not static:
             new_id = str(uuid4())
             self.static_builds[new_id] = Mesh() # TODO: Create RenderMesh class which stores stuff in a VBO
             self.build_static(new_id)
@@ -97,15 +97,17 @@ class UnifiedMesh:
         Combine all the mesh data into a single 1d numpy array
         """
         # Init empty arrays
-        static_vertices = np.empty(0, dtype=np.float64)
-        static_colors = np.empty(0, dtype=np.float64)
+        vertices = []
+        colors = []
         
         # Update the arrays
         for mesh in self.meshes:
             mesh.lock.acquire()
-            static_vertices = np.concatenate((static_vertices, mesh.vertices))
-            static_colors = np.concatenate((static_colors, mesh.colors))
+            vertices += [mesh.vertices]
+            colors += [mesh.colors]
             mesh.lock.release()
+        static_vertices = np.concatenate(vertices, None)
+        static_colors = np.concatenate(colors, None)
         
         # Assign the arrays to the actual mesh
         static = self.static_builds[id]
