@@ -50,7 +50,7 @@ class UnifiedMesh:
         """
         Adds a mesh to the mesh list and returns the id
         """
-        new = Mesh(self)
+        new = Mesh()
         self.meshes[id] = new
         self.update_later() # TODO: If an update is already scheduled, do nothing
         return id
