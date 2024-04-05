@@ -63,26 +63,26 @@ class UnifiedMesh:
         del self.meshes[id]
         self.update_later()
         return id
-
-    # TODO after this line
+    
     def update(self):
         """
         Handle the creation of static meshes and update the update times
         """
+        # TODO: Delete mesh if its too old / not updating / unneeded
 
     @property
-    def is_modified(self):
+    def changed(self):
         """
         Return whether any mesh in the list was updated
         """
-        return False
+        return any([self.meshes[mesh].changed for mesh in self.meshes])
 
     @property
     def mesh_available(self):
         """
         Return whether any mesh in the static build list is not currently drawing/modifying
         """
-        return False # Return uuid if available
+        return not any([self.meshes[mesh].lock.locked() for mesh in self.meshes])
     
     def touch(self, id):
         """
