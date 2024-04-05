@@ -59,7 +59,7 @@ class UnifiedMesh:
         """
         Deletes a mesh by its id
         """
-        self.get_mesh(id).dispose()
+        # self.get_mesh(id).dispose() # TODO: Add this func to Mesh and RenderMesh
         del self.meshes[id]
         self.update_later()
         return id
@@ -81,9 +81,13 @@ class UnifiedMesh:
             self.build_static(new_id)
             self.touch(new_id)
         else:
-            self.build_static(static)
-                        
-        # TODO: Delete mesh if its too old / not updating / unneeded
+            self.build_static(static[0])
+            self.touch(static[0])
+        
+        if len(static) > 1:
+            removed = static.pop(-1)
+            # self.static_builds[removed].dispose() # See delete_mesh
+            del self.static_builds[removed]
         
         for mesh in self.meshes:
             self.meshes[mesh].notify_update()
@@ -126,11 +130,19 @@ class UnifiedMesh:
         """
         if any([self.static_builds[mesh].lock.locked() for mesh in self.static_builds]):
             return False
-        for mesh in self.static_builds:
-            if not self.static_builds[mesh].lock.locked(): return mesh
-            break
+        ret = []
+        for mesh in self.sorted_ids:
+            if not self.static_builds[mesh].lock.locked(): ret.append(mesh)
+        return ret
     
     # TODO: Property static_drawable which gives the latest static mesh which is not busy updating
+    @property
+    def static_drawable(self):
+        """
+        Return whether any mesh in the static build list is not currently drawing/modifying
+        """
+        for mesh in self.sorted_ids:
+            if not self.static_builds[mesh].lock.locked(): return mesh
     
     def touch(self, id):
         """
