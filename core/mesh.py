@@ -15,10 +15,23 @@ class Mesh:
         """
         Just initialize the empty arrays of the required size
         """
+        self.changed = False
         self.lock = Lock()
         self.vertices = np.empty(DEFAULT_VBO_SIZE, dtype=np.float64)
         self.colors = np.empty(DEFAULT_VBO_SIZE, dtype=np.float64)
         # TODO: Get values from multiprocessing shared memory
+        
+    def notify_change(self):
+        """
+        Notify that the mesh was modified after the last update
+        """
+        self.changed = True
+        
+    def notify_update(self):
+        """
+        Notify that the mesh modification was taken into account in the last update
+        """
+        self.changed = False
         
 class UnifiedMesh:
     """
@@ -31,7 +44,7 @@ class UnifiedMesh:
         """
         self.meshes = {} # The Renderer class takes care of this
         self.static_builds = {}
-        self.update_times = {}
+        self.sorted_ids = [] # Sorted by latest update
 
     def new_mesh(self, id=uuid4()):
         """
@@ -50,3 +63,30 @@ class UnifiedMesh:
         del self.meshes[id]
         self.update_later()
         return id
+
+    # TODO after this line
+    def update(self):
+        """
+        Handle the creation of static meshes and update the update times
+        """
+
+    @property
+    def is_modified(self):
+        """
+        Return whether any mesh in the list was updated
+        """
+        return False
+
+    @property
+    def mesh_available(self):
+        """
+        Return whether any mesh in the static build list is not currently drawing/modifying
+        """
+        return False # Return uuid if available
+    
+    def touch(self, id):
+        """
+        Move id to the first element in self.sorted_ids
+        """
+        self.sorted_ids.remove(id)
+        self.sorted_ids = [id] + self.sorted_ids
