@@ -1,6 +1,6 @@
 # Imports
-from uuid import uuid4
 import numpy as np
+from uuid import uuid4
 from threading import Lock
 
 # Default constants
@@ -46,7 +46,7 @@ class UnifiedMesh:
         self.static_builds = {}
         self.sorted_ids = [] # Sorted by latest update
 
-    def new_mesh(self, id=uuid4()):
+    def new_mesh(self, id=str(uuid4())):
         """
         Adds a mesh to the mesh list and returns the id
         """
@@ -59,16 +59,58 @@ class UnifiedMesh:
         """
         Deletes a mesh by its id
         """
-        self.meshes[id].dispose()
+        self.get_mesh(id).dispose()
         del self.meshes[id]
         self.update_later()
         return id
+    
+    def get_mesh(self, id):
+        """
+        Get a mesh by its id
+        """
+        return self.meshes[id]
     
     def update(self):
         """
         Handle the creation of static meshes and update the update times
         """
+        static = self.static_available
+        if not static:            
+            new_id = str(uuid4())
+            self.static_builds[new_id] = Mesh() # TODO: Create RenderMesh class which stores stuff in a VBO
+            self.build_static(new_id)
+            self.touch(new_id)
+        else:
+            self.build_static(static)
+                        
         # TODO: Delete mesh if its too old / not updating / unneeded
+        
+        for mesh in self.meshes:
+            self.meshes[mesh].notify_update()
+        
+    def build_static(self, id: str):
+        """
+        Combine all the mesh data into a single 1d numpy array
+        """
+        # Init empty arrays
+        static_vertices = np.empty(0, dtype=np.float64)
+        static_colors = np.empty(0, dtype=np.float64)
+        
+        # Update the arrays
+        for mesh in self.meshes:
+            mesh.lock.acquire()
+            static_vertices = np.concatenate((static_vertices, mesh.vertices))
+            static_colors = np.concatenate((static_colors, mesh.colors))
+            mesh.lock.release()
+        
+        # Assign the arrays to the actual mesh
+        static = self.static_builds[id]
+        static.lock.acquire()
+        del static.vertices
+        del static.colors
+        static.vertices = static_vertices
+        static.colors = static_colors
+        static.lock.release()
 
     @property
     def changed(self):
@@ -78,11 +120,17 @@ class UnifiedMesh:
         return any([self.meshes[mesh].changed for mesh in self.meshes])
 
     @property
-    def mesh_available(self):
+    def static_available(self):
         """
         Return whether any mesh in the static build list is not currently drawing/modifying
         """
-        return not any([self.meshes[mesh].lock.locked() for mesh in self.meshes])
+        if any([self.static_builds[mesh].lock.locked() for mesh in self.static_builds]):
+            return False
+        for mesh in self.static_builds:
+            if not self.static_builds[mesh].lock.locked(): return mesh
+            break
+    
+    # TODO: Property static_drawable which gives the latest static mesh which is not busy updating
     
     def touch(self, id):
         """
