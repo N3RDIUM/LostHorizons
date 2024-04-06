@@ -39,7 +39,7 @@ class Window:
         # Initialize required variables
         self.draw_queue = Scheduler()
         
-        # TODO: Inbuilt FPS Counter
+        # TODO: Inbuilt FPS Counter with smooth fps stuff
         
         # TODO: Start the shared context thread here
         

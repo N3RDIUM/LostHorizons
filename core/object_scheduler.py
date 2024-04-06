@@ -35,7 +35,7 @@ class Scheduler:
         Useful if you want to partially update the queue
         """
         item = self.queue[id]
-        item['object'].__getattribute__('function')()
+        item['object'].__getattribute__(item['function'])()
         return id
     
     def process(self) -> None:

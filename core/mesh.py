@@ -3,6 +3,29 @@ import numpy as np
 from uuid import uuid4
 from threading import Lock
 from OpenGL.arrays import vbo
+from OpenGL.GL import (
+    glClear,
+    glEnableClientState,
+    glDisableClientState,
+    glDepthMask,
+    glDepthFunc,
+    glDepthRange,
+    glEnable,
+    glDisable,
+    glVertexPointer,
+    glColorPointer,
+    glDrawArrays,
+    
+    GL_COLOR_BUFFER_BIT,
+    GL_DEPTH_BUFFER_BIT,
+    GL_VERTEX_ARRAY,
+    GL_COLOR_ARRAY,
+    GL_DEPTH_TEST,
+    GL_TRIANGLES,
+    GL_TRUE,
+    GL_FLOAT,
+    GL_LEQUAL,
+)
 
 # Default constants
 DEFAULT_VBO_SIZE = 1024 * 3
@@ -75,6 +98,7 @@ class RenderMesh(Mesh):
         """
         if not self.vertex_buffer and not self.color_buffer:
             return
+        
         self.lock.acquire()
         self.vertex_buffer.set_array(self.vertices)
         self.color_buffer.set_array(self.colors)
@@ -86,9 +110,30 @@ class RenderMesh(Mesh):
         """
         if not self.vertex_buffer and not self.color_buffer:
             return
+        
         self.lock.acquire()
         self.vertex_buffer.delete()
         self.color_buffer.delete()
+        self.lock.release()
+        
+    def draw(self) -> None:
+        """
+        Draw the mesh.
+        """
+        if not self.vertex_buffer and not self.color_buffer:
+            return
+        
+        self.lock.acquire()
+        
+        # Bind and point the buffers
+        self.vertex_buffer.bind()
+        glVertexPointer(3, GL_FLOAT, 0, self.vertex_buffer.buf)
+        self.color_buffer.bind()
+        glColorPointer(3, GL_FLOAT, 0, self.color_buffer.buf)
+        
+        # Draw the buffers
+        glDrawArrays(GL_TRIANGLES, 0, len(self.vertices) // 3)
+        
         self.lock.release()
 
 class UnifiedMesh:
@@ -169,6 +214,29 @@ class UnifiedMesh:
         static.vertices = static_vertices
         static.colors = static_colors
         static.lock.release()
+        
+    def draw(self) -> None:
+        """
+        Draws the latest mesh which is not busy
+        """ 
+        if not self.static_drawable:
+            return # Prevent the screen from going blank
+        
+        glClear(GL_COLOR_BUFFER_BIT)
+        glClear(GL_DEPTH_BUFFER_BIT)
+        
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glEnableClientState(GL_COLOR_ARRAY)
+        glEnable(GL_DEPTH_TEST)
+        glDepthMask(GL_TRUE)
+        glDepthFunc(GL_LEQUAL)
+        glDepthRange(0,0, 1.0)
+        
+        self.static_builds[self.static_drawable].draw()
+        
+        glDisableClientState(GL_VERTEX_ARRAY)
+        glDisableClientState(GL_COLOR_ARRAY)
+        glDisable(GL_DEPTH_TEST)
 
     @property
     def changed(self) -> bool:

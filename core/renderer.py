@@ -24,4 +24,4 @@ class Renderer:
         """
         Draw all meshes
         """
-        self.UnifiedMesh.draw()
+        self.mesh.draw()
