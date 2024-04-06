@@ -45,7 +45,7 @@ class Window:
         
         logger.info('[core/Window] Window initialized successfully!')
 
-    def mainloop(self):
+    def mainloop(self) -> None:
         """
         Starts the mainloop.
         """
@@ -63,4 +63,4 @@ class Window:
         glfw.terminate()
 
     @property
-    def size(self): return glfw.get_window_size(self.window)
+    def size(self) -> tuple: return glfw.get_window_size(self.window)

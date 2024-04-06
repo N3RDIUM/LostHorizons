@@ -20,7 +20,7 @@ class Renderer:
         self.new_mesh = self.mesh.new_mesh
         self.delete_mesh = self.mesh.delete_mesh
     
-    def draw(self):
+    def draw(self) -> None:
         """
         Draw all meshes
         """
