@@ -1,6 +1,6 @@
 # Imports
-from core.window import Window
 from core.renderer import Renderer
+from core.window import Window
 
 # Initialization
 window = Window()

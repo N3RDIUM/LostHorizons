@@ -1,40 +1,41 @@
 # Imports
-import numpy as np
-from uuid import uuid4
 from threading import Lock
+from uuid import uuid4
+
+import numpy as np
 from OpenGL.arrays import vbo
 from OpenGL.GL import (
-    glClear,
-    glEnableClientState,
-    glDisableClientState,
-    glDepthMask,
-    glDepthFunc,
-    glDepthRange,
-    glEnable,
-    glDisable,
-    glVertexPointer,
-    glColorPointer,
-    glDrawArrays,
-    
+    GL_COLOR_ARRAY,
     GL_COLOR_BUFFER_BIT,
     GL_DEPTH_BUFFER_BIT,
-    GL_VERTEX_ARRAY,
-    GL_COLOR_ARRAY,
     GL_DEPTH_TEST,
-    GL_TRIANGLES,
-    GL_TRUE,
     GL_FLOAT,
     GL_LEQUAL,
+    GL_TRIANGLES,
+    GL_TRUE,
+    GL_VERTEX_ARRAY,
+    glClear,
+    glColorPointer,
+    glDepthFunc,
+    glDepthMask,
+    glDepthRange,
+    glDisable,
+    glDisableClientState,
+    glDrawArrays,
+    glEnable,
+    glEnableClientState,
+    glVertexPointer,
 )
 
 # Default constants
 DEFAULT_VBO_SIZE = 1024 * 3
 
+
 class Mesh:
     """
     A mesh used for storing a bunch of points and the colors of those points
     """
-    
+
     def __init__(self) -> None:
         """
         Just initialize the empty arrays of the required size
@@ -43,13 +44,13 @@ class Mesh:
         self.lock = Lock()
         self.vertices = np.empty(DEFAULT_VBO_SIZE, dtype=np.float64)
         self.colors = np.empty(DEFAULT_VBO_SIZE, dtype=np.float64)
-        
+
     def notify_change(self) -> None:
         """
         Notify that the mesh was modified after the last update
         """
         self.changed = True
-        
+
     def notify_update(self) -> None:
         """
         Notify that the mesh modification was taken into account in the last update
@@ -64,90 +65,88 @@ class Mesh:
         del self.vertices
         del self.colors
         self.lock.release()
-        
+
+
 class RenderMesh(Mesh):
     """
     A Mesh but it also stores its stuff in a VBO.
     """
-    
+
     def __init__(self) -> None:
         super().__init__()
         self.vertex_buffer = None
         self.color_buffer = None
-        
+
     def create_buffers(self) -> None:
         """
         Create the buffers for the thing
         """
         self.lock.acquire()
         self.vertex_buffer = vbo.VBO(
-            self.vertices,
-            usage="GL_STATIC_DRAW",
-            target="GL_ARRAY_BUFFER"
+            self.vertices, usage="GL_STATIC_DRAW", target="GL_ARRAY_BUFFER"
         )
         self.color_buffer = vbo.VBO(
-            self.colors,
-            usage="GL_STATIC_DRAW",
-            target="GL_ARRAY_BUFFER"
+            self.colors, usage="GL_STATIC_DRAW", target="GL_ARRAY_BUFFER"
         )
         self.lock.release()
-        
+
     def update_buffers(self) -> None:
         """
         Update the buffers with self.vertices and self.colors
         """
         if not self.vertex_buffer and not self.color_buffer:
             return
-        
+
         self.lock.acquire()
         self.vertex_buffer.set_array(self.vertices)
         self.color_buffer.set_array(self.colors)
         self.lock.release()
-        
+
     def delete_buffers(self) -> None:
         """
         If buffers exist, delete them and free up the memory
         """
         if not self.vertex_buffer and not self.color_buffer:
             return
-        
+
         self.lock.acquire()
         self.vertex_buffer.delete()
         self.color_buffer.delete()
         self.lock.release()
-        
+
     def draw(self) -> None:
         """
         Draw the mesh.
         """
         if not self.vertex_buffer and not self.color_buffer:
             return
-        
+
         self.lock.acquire()
-        
+
         # Bind and point the buffers
         self.vertex_buffer.bind()
         glVertexPointer(3, GL_FLOAT, 0, self.vertex_buffer.buf)
         self.color_buffer.bind()
         glColorPointer(3, GL_FLOAT, 0, self.color_buffer.buf)
-        
+
         # Draw the buffers
         glDrawArrays(GL_TRIANGLES, 0, len(self.vertices) // 3)
-        
+
         self.lock.release()
+
 
 class UnifiedMesh:
     """
     A unified mesh class which handles drawcalls for every single mesh.
     """
-    
+
     def __init__(self) -> None:
         """
         Initialize the mesh queue and other required stuff
         """
-        self.meshes = {} # The Renderer class takes care of this
+        self.meshes = {}  # The Renderer class takes care of this
         self.static_builds = {}
-        self.sorted_ids = [] # Sorted by latest update
+        self.sorted_ids = []  # Sorted by latest update
 
     def new_mesh(self, id=str(uuid4())) -> str:
         """
@@ -156,7 +155,7 @@ class UnifiedMesh:
         new = Mesh()
         self.meshes[id] = new
         return id
-    
+
     def delete_mesh(self, id) -> str:
         """
         Deletes a mesh by its id
@@ -165,7 +164,7 @@ class UnifiedMesh:
         del self.meshes[id]
         self.update_later()
         return id
-    
+
     def update(self) -> None:
         """
         Handle the creation of static meshes and update the update times
@@ -180,15 +179,15 @@ class UnifiedMesh:
         else:
             self.build_static(static[0])
             self.touch(static[0])
-        
+
         if len(static) > 1:
             removed = static.pop(-1)
             self.static_builds[removed].dispose()
             del self.static_builds[removed]
-        
+
         for mesh in self.meshes:
             self.meshes[mesh].notify_update()
-        
+
     def build_static(self, id: str) -> None:
         """
         Combine all the mesh data into a single 1d numpy array
@@ -196,7 +195,7 @@ class UnifiedMesh:
         # Init empty arrays
         vertices = []
         colors = []
-        
+
         # Update the arrays
         for mesh in self.meshes:
             mesh.lock.acquire()
@@ -205,7 +204,7 @@ class UnifiedMesh:
             mesh.lock.release()
         static_vertices = np.concatenate(vertices, None)
         static_colors = np.concatenate(colors, None)
-        
+
         # Assign the arrays to the actual mesh
         static = self.static_builds[id]
         static.lock.acquire()
@@ -214,26 +213,26 @@ class UnifiedMesh:
         static.vertices = static_vertices
         static.colors = static_colors
         static.lock.release()
-        
+
     def draw(self) -> None:
         """
         Draws the latest mesh which is not busy
-        """ 
+        """
         if not self.static_drawable:
-            return # Prevent the screen from going blank
-        
+            return  # Prevent the screen from going blank
+
         glClear(GL_COLOR_BUFFER_BIT)
         glClear(GL_DEPTH_BUFFER_BIT)
-        
+
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_COLOR_ARRAY)
         glEnable(GL_DEPTH_TEST)
         glDepthMask(GL_TRUE)
         glDepthFunc(GL_LEQUAL)
-        glDepthRange(0,0, 1.0)
-        
+        glDepthRange(0, 0, 1.0)
+
         self.static_builds[self.static_drawable].draw()
-        
+
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
         glDisable(GL_DEPTH_TEST)
@@ -254,17 +253,19 @@ class UnifiedMesh:
             return False
         ret = []
         for mesh in self.sorted_ids:
-            if not self.static_builds[mesh].lock.locked(): ret.append(mesh)
+            if not self.static_builds[mesh].lock.locked():
+                ret.append(mesh)
         return ret
-    
+
     @property
     def static_drawable(self) -> str | None:
         """
         Return whether any mesh in the static build list is not currently drawing/modifying
         """
         for mesh in self.sorted_ids:
-            if not self.static_builds[mesh].lock.locked(): return mesh
-    
+            if not self.static_builds[mesh].lock.locked():
+                return mesh
+
     def touch(self, id) -> None:
         """
         Move id to the first element in self.sorted_ids
